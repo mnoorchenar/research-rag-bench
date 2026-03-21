@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  app:
+    build: .
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PORT=7860
+      - DATA_DIR=data
+      - TRANSFORMERS_CACHE=/tmp/hf_cache
+    restart: unless-stopped
