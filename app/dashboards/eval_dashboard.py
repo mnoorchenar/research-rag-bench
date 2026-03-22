@@ -57,12 +57,12 @@ button,input,textarea,select{font-family:inherit}
 }
 [data-theme="light"] .landing{background:radial-gradient(ellipse 110% 60% at 50% -5%,rgba(79,70,229,.11) 0%,transparent 55%)}
 .l-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 16px;border:1px solid var(--pr-bd);border-radius:20px;background:var(--pr-bg);font-size:11px;font-weight:700;color:var(--pr);letter-spacing:.06em;text-transform:uppercase;margin-bottom:26px;position:relative;z-index:1}
-.l-title{font-size:clamp(2rem,5vw,3.4rem);font-weight:900;line-height:1.15;margin-bottom:16px;max-width:700px;position:relative;z-index:1}
+.l-title{font-size:clamp(2rem,5vw,3.4rem);font-weight:900;line-height:1.15;margin-bottom:16px;max-width:1000px;position:relative;z-index:1}
 .l-title .g{background:linear-gradient(135deg,var(--pr),var(--ok));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.l-sub{font-size:.97rem;color:var(--mt);max-width:500px;line-height:1.75;margin-bottom:48px;position:relative;z-index:1}
+.l-sub{font-size:.97rem;color:var(--mt);max-width:800px;line-height:1.75;margin-bottom:48px;position:relative;z-index:1}
 .l-sub strong{color:var(--tx)}
 .l-who{font-size:11px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;position:relative;z-index:1}
-.l-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:620px;margin-bottom:30px;position:relative;z-index:1}
+.l-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:1000px;margin:0 auto 30px;position:relative;z-index:1}
 .l-card{background:var(--sf);border:1.5px solid var(--bd);border-radius:16px;padding:26px 22px;cursor:pointer;text-align:left;transition:all .22s;position:relative;overflow:hidden;width:100%}
 .l-card:hover{transform:translateY(-5px);box-shadow:var(--sh)}
 .l-card.gen:hover{border-color:var(--ok);box-shadow:0 14px 40px rgba(63,185,80,.15)}
