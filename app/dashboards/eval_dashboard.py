@@ -1,41 +1,42 @@
+"""
+eval_dashboard.py  —  research-rag-bench
+Architecture rule: every component ID is ALWAYS present in the DOM.
+Show/hide is done via style callbacks only — never conditional rendering.
+This prevents "Callback referencing non-existent ID" errors.
+"""
 from __future__ import annotations
 import dash
-from dash import dcc, html, Input, Output, State, ctx, ALL
+from dash import dcc, html, Input, Output, State, ctx, ALL, clientside_callback
 import plotly.graph_objects as go
 
 # ─────────────────────────────────────────────────────────────────────────────
-# INDEX STRING  —  all CSS lives here so Dash injects it before first paint
+# CSS
 # ─────────────────────────────────────────────────────────────────────────────
 _INDEX = """<!DOCTYPE html>
 <html data-theme="dark">
 <head>{%metas%}<title>research-rag-bench</title>{%favicon%}{%css%}
 <style>
-/* ── tokens ── */
 :root{
   --bg:#0d1117;--sf:#161b22;--sf2:#21262d;--bd:#30363d;
   --tx:#f0f6fc;--mt:#8b949e;
-  --pr:#818cf8;--pr2:#6366f1;--pr-bg:rgba(129,140,248,.12);--pr-bd:rgba(129,140,248,.28);
+  --pr:#818cf8;--pr-bg:rgba(129,140,248,.13);--pr-bd:rgba(129,140,248,.3);
   --ok:#3fb950;--wn:#d29922;--er:#f85149;
   --c1:#d29922;--c2:#818cf8;--c3:#3fb950;
-  --sh:0 2px 8px rgba(0,0,0,.4);
-  --r:12px;
+  --sh:0 2px 12px rgba(0,0,0,.45);--r:12px;
 }
 [data-theme="light"]{
-  --bg:#f0f4f8;--sf:#ffffff;--sf2:#f8fafc;--bd:#e2e8f0;
+  --bg:#f0f4f8;--sf:#fff;--sf2:#f8fafc;--bd:#e2e8f0;
   --tx:#0f172a;--mt:#64748b;
-  --pr:#4f46e5;--pr2:#4338ca;--pr-bg:rgba(79,70,229,.08);--pr-bd:rgba(79,70,229,.22);
+  --pr:#4f46e5;--pr-bg:rgba(79,70,229,.08);--pr-bd:rgba(79,70,229,.22);
   --ok:#059669;--wn:#d97706;--er:#dc2626;
   --c1:#f59e0b;--c2:#6366f1;--c3:#10b981;
-  --sh:0 1px 4px rgba(0,0,0,.08);
+  --sh:0 1px 5px rgba(0,0,0,.09);
 }
-
-/* ── reset ── */
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;transition:background .3s,color .3s}
-a{color:inherit;text-decoration:none}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;transition:background .3s,color .3s}
 button,input,textarea,select{font-family:inherit}
 
-/* ── Dash overrides ── */
+/* Dash widget overrides */
 .Select-control,.Select-menu-outer{background:var(--sf)!important;border-color:var(--bd)!important;color:var(--tx)!important}
 .Select-option{background:var(--sf)!important;color:var(--tx)!important}
 .Select-option.is-focused{background:var(--pr-bg)!important}
@@ -43,841 +44,687 @@ button,input,textarea,select{font-family:inherit}
 .rc-slider-track{background:var(--pr)!important}
 .rc-slider-handle{border-color:var(--pr)!important;background:var(--pr)!important}
 
-/* ── LANDING SCREEN ── */
+/* ── LANDING ── */
 .landing{
   min-height:100vh;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;padding:40px 24px;text-align:center;
-  background:radial-gradient(ellipse 120% 80% at 50% -10%,rgba(129,140,248,.18) 0%,transparent 60%);
+  justify-content:center;padding:48px 24px;text-align:center;
+  background:radial-gradient(ellipse 130% 70% at 50% -5%,rgba(129,140,248,.2) 0%,transparent 55%);
   position:relative;overflow:hidden;
 }
-.landing::before{
-  content:'';position:absolute;inset:0;
-  background-image:linear-gradient(rgba(129,140,248,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(129,140,248,.04) 1px,transparent 1px);
-  background-size:52px 52px;pointer-events:none;
+.landing::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(129,140,248,.04) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(129,140,248,.04) 1px,transparent 1px);
+  background-size:54px 54px}
+[data-theme="light"] .landing{background:radial-gradient(ellipse 130% 70% at 50% -5%,rgba(79,70,229,.1) 0%,transparent 55%)}
+.l-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 16px;border:1px solid var(--pr-bd);border-radius:20px;background:var(--pr-bg);font-size:11px;font-weight:700;color:var(--pr);letter-spacing:.06em;text-transform:uppercase;margin-bottom:24px;position:relative;z-index:1}
+.l-title{font-size:clamp(2rem,5vw,3.4rem);font-weight:900;line-height:1.15;margin-bottom:14px;max-width:680px;position:relative;z-index:1}
+.l-title .g{background:linear-gradient(135deg,var(--pr),var(--ok));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.l-sub{font-size:.98rem;color:var(--mt);max-width:500px;line-height:1.72;margin-bottom:44px;position:relative;z-index:1}
+.l-sub strong{color:var(--tx)}
+.l-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:600px;margin-bottom:28px;position:relative;z-index:1}
+.l-card{background:var(--sf);border:1.5px solid var(--bd);border-radius:16px;padding:26px 22px;cursor:pointer;text-align:left;transition:all .22s;position:relative;overflow:hidden}
+.l-card:hover{transform:translateY(-5px);box-shadow:var(--sh)}
+.l-card.gen:hover{border-color:var(--ok);box-shadow:0 14px 40px rgba(63,185,80,.14)}
+.l-card.exp:hover{border-color:var(--pr);box-shadow:0 14px 40px rgba(129,140,248,.18)}
+.l-card-glow{position:absolute;inset:0;border-radius:14px;opacity:0;transition:opacity .22s}
+.l-card.gen .l-card-glow{background:radial-gradient(circle at 0 0,rgba(63,185,80,.1),transparent 65%)}
+.l-card.exp .l-card-glow{background:radial-gradient(circle at 0 0,rgba(129,140,248,.1),transparent 65%)}
+.l-card:hover .l-card-glow{opacity:1}
+.l-icon{font-size:2.2rem;margin-bottom:10px;display:block;position:relative;z-index:1}
+.l-name{font-size:.98rem;font-weight:800;color:var(--tx);margin-bottom:5px;position:relative;z-index:1}
+.l-desc{font-size:.82rem;color:var(--mt);line-height:1.6;position:relative;z-index:1}
+.l-tag{display:inline-block;margin-top:9px;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:7px;position:relative;z-index:1}
+.l-card.gen .l-tag{background:rgba(63,185,80,.12);color:var(--ok);border:1px solid rgba(63,185,80,.25)}
+.l-card.exp .l-tag{background:var(--pr-bg);color:var(--pr);border:1px solid var(--pr-bd)}
+.l-note{font-size:.78rem;color:var(--mt);position:relative;z-index:1}
+
+/* ── TOPBAR ── */
+.topbar{height:50px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;background:var(--sf);border-bottom:1px solid var(--bd);
+  position:sticky;top:0;z-index:200;transition:background .3s}
+.tb-logo{font-size:14px;font-weight:800;color:var(--tx);display:flex;align-items:center;gap:8px}
+.tb-badge{font-size:10px;color:var(--mt);background:var(--sf2);border:1px solid var(--bd);border-radius:5px;padding:2px 7px}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-stats{font-size:11px;color:var(--mt)}
+.ib{background:var(--sf2);border:1px solid var(--bd);border-radius:7px;padding:5px 10px;
+  cursor:pointer;color:var(--tx);font-size:13px;transition:all .2s;line-height:1;white-space:nowrap}
+.ib:hover{border-color:var(--pr);color:var(--pr)}
+
+/* ── TABS ── */
+.tabs{display:flex;background:var(--sf);border-bottom:1px solid var(--bd);padding:0 22px;overflow-x:auto}
+.tb{padding:10px 16px;font-size:13px;font-weight:600;color:var(--mt);border:none;
+  background:transparent;cursor:pointer;border-bottom:2px solid transparent;
+  white-space:nowrap;transition:all .2s;font-family:inherit}
+.tb:hover{color:var(--tx)}
+.tb.on{color:var(--pr);border-bottom-color:var(--pr)}
+
+/* ── SEARCH FLOW ── */
+.search-hero{
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:48px 24px 32px;transition:padding .4s;
 }
-[data-theme="light"] .landing{background:radial-gradient(ellipse 120% 80% at 50% -10%,rgba(79,70,229,.1) 0%,transparent 60%)}
-.landing-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border:1px solid var(--pr-bd);border-radius:20px;background:var(--pr-bg);font-size:12px;font-weight:700;color:var(--pr);letter-spacing:.05em;text-transform:uppercase;margin-bottom:22px}
-.landing-title{font-size:clamp(2rem,5vw,3.2rem);font-weight:900;line-height:1.15;margin-bottom:16px;max-width:700px}
-.landing-title .grad{background:linear-gradient(135deg,var(--pr),var(--ok));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.landing-sub{font-size:1rem;color:var(--mt);max-width:520px;line-height:1.7;margin-bottom:40px}
-.landing-sub strong{color:var(--tx)}
-.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:640px;margin-bottom:32px}
-.mode-card{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:28px 24px;cursor:pointer;text-align:left;transition:all .22s;position:relative;overflow:hidden}
-.mode-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .22s;border-radius:16px}
-.mode-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.3)}
-.mode-card.general:hover{border-color:var(--ok);box-shadow:0 12px 32px rgba(63,185,80,.15)}
-.mode-card.general::before{background:radial-gradient(circle at top left,rgba(63,185,80,.08),transparent 70%)}
-.mode-card.expert:hover{border-color:var(--pr);box-shadow:0 12px 32px rgba(129,140,248,.18)}
-.mode-card.expert::before{background:radial-gradient(circle at top left,rgba(129,140,248,.08),transparent 70%)}
-.mode-card:hover::before{opacity:1}
-.mode-icon{font-size:2.4rem;margin-bottom:12px;display:block}
-.mode-title{font-size:1rem;font-weight:800;color:var(--tx);margin-bottom:6px}
-.mode-desc{font-size:.84rem;color:var(--mt);line-height:1.6}
-.mode-tag{display:inline-block;margin-top:10px;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:8px;letter-spacing:.04em}
-.mode-card.general .mode-tag{background:rgba(63,185,80,.12);color:var(--ok);border:1px solid rgba(63,185,80,.25)}
-.mode-card.expert .mode-tag{background:var(--pr-bg);color:var(--pr);border:1px solid var(--pr-bd)}
-.landing-footer{font-size:.78rem;color:var(--mt)}
+.search-hero.compact{padding:16px 24px 0}
+.sh-logo{font-size:1.2rem;font-weight:900;color:var(--tx);margin-bottom:22px;
+  display:flex;align-items:center;gap:8px;transition:all .4s}
+.search-hero.compact .sh-logo{display:none}
+.search-box-wrap{width:100%;max-width:640px;position:relative;margin-bottom:6px}
+.search-box{
+  width:100%;padding:14px 52px 14px 20px;font-size:16px;border:1.5px solid var(--bd);
+  border-radius:26px;background:var(--sf);color:var(--tx);outline:none;
+  transition:border-color .2s,box-shadow .2s;box-shadow:var(--sh);
+}
+.search-box:focus{border-color:var(--pr);box-shadow:0 0 0 3px var(--pr-bg)}
+.search-enter-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  background:var(--pr);border:none;border-radius:18px;padding:7px 16px;
+  color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s;font-family:inherit}
+.search-enter-btn:hover{opacity:.85}
+.search-hint{font-size:12px;color:var(--mt);margin-bottom:18px}
 
-/* ── MAIN APP SHELL ── */
-.app-shell{display:flex;flex-direction:column;min-height:100vh}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;background:var(--sf);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:200;flex-shrink:0}
-.topbar-left{display:flex;align-items:center;gap:12px}
-.topbar-logo{font-size:15px;font-weight:800;color:var(--tx)}
-.topbar-badge{font-size:11px;color:var(--mt);background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:2px 8px}
-.topbar-right{display:flex;align-items:center;gap:8px}
-.topbar-stats{font-size:11px;color:var(--mt)}
-.icon-btn{background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:5px 10px;cursor:pointer;color:var(--tx);font-size:14px;transition:all .2s;line-height:1}
-.icon-btn:hover{border-color:var(--pr);color:var(--pr)}
-.mode-chip{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;border:1px solid var(--bd);background:var(--sf2);color:var(--mt);transition:all .2s}
-.mode-chip:hover{border-color:var(--pr);color:var(--pr)}
-
-/* ── tabs ── */
-.tabs-bar{display:flex;background:var(--sf);border-bottom:1px solid var(--bd);padding:0 24px;overflow-x:auto}
-.tab-btn{padding:11px 18px;font-size:13px;font-weight:600;color:var(--mt);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;font-family:inherit}
-.tab-btn:hover{color:var(--tx)}
-.tab-btn.active{color:var(--pr);border-bottom-color:var(--pr)}
-
-/* ── page content wrapper ── */
-.page{padding:28px 24px;max-width:900px;margin:0 auto;width:100%}
-.page-wide{padding:28px 24px;max-width:1160px;margin:0 auto;width:100%}
-
-/* ── card ── */
-.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:22px;margin-bottom:16px;transition:background .3s}
-.card-title{font-size:.72rem;font-weight:800;color:var(--mt);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.card-title .dot{width:6px;height:6px;border-radius:50%;background:var(--pr);flex-shrink:0}
-
-/* ── example cards ── */
-.ex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-.ex-card{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:14px;cursor:pointer;text-align:left;transition:all .2s;width:100%}
+/* ── EXAMPLE CARDS ── */
+.ex-wrap{width:100%;max-width:760px;margin-bottom:12px}
+.ex-label{font-size:11px;color:var(--mt);font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:10px;text-align:left}
+.ex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ex-card{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;
+  padding:12px 13px;cursor:pointer;text-align:left;transition:all .2s;width:100%}
 .ex-card:hover{border-color:var(--pr);background:var(--pr-bg);transform:translateY(-2px)}
-.ex-card-icon{font-size:18px;margin-bottom:6px;display:block}
-.ex-card-persona{font-size:10px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-.ex-card-q{font-size:12px;color:var(--tx);line-height:1.5;font-weight:500}
-.ex-card-hint{font-size:11px;color:var(--pr);margin-top:6px;font-weight:600}
+.ex-icon{font-size:16px;margin-bottom:4px;display:block}
+.ex-persona{font-size:10px;font-weight:700;color:var(--mt);text-transform:uppercase;
+  letter-spacing:.05em;margin-bottom:3px}
+.ex-q{font-size:12px;color:var(--tx);line-height:1.45;font-weight:500}
+.ex-tag{font-size:10px;color:var(--pr);font-weight:700;margin-top:5px;display:block}
 
-/* ── form controls ── */
-.form-label{font-size:11px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
-.inp{width:100%;padding:10px 14px;border:1px solid var(--bd);border-radius:8px;font-size:14px;color:var(--tx);background:var(--sf2);outline:none;transition:border-color .2s}
+/* ── STEP INDICATOR ── */
+.steps{display:flex;align-items:center;width:100%;max-width:420px;margin:0 auto 24px}
+.st{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600}
+.st-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;transition:all .3s}
+.done .st-dot{background:var(--ok);color:#fff}
+.active .st-dot{background:var(--pr);color:#fff}
+.idle .st-dot{background:var(--sf2);color:var(--mt);border:1px solid var(--bd)}
+.done .st-lbl{color:var(--ok)}
+.active .st-lbl{color:var(--pr)}
+.idle .st-lbl{color:var(--mt)}
+.st-line{flex:1;height:1px;background:var(--bd);margin:0 7px;min-width:16px}
+
+/* ── EXPERT CONTROLS ── */
+.expert-panel{width:100%;max-width:760px;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.ctrl-card{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px}
+.ctrl-lbl{font-size:10px;font-weight:700;color:var(--mt);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.meth-row{display:flex;gap:6px}
+.mc{flex:1;border:1px solid var(--bd);border-radius:8px;padding:9px 10px;
+  cursor:pointer;transition:all .2s;background:var(--sf2);text-align:left}
+.mc:hover,.mc.on{border-color:var(--pr);background:var(--pr-bg)}
+.mc.on .mc-name{color:var(--pr)}
+.mc-name{font-size:11px;font-weight:800;color:var(--tx);margin-bottom:2px}
+.mc-desc{font-size:10px;color:var(--mt);line-height:1.4}
+
+/* ── ANSWER AREA ── */
+.answer-wrap{width:100%;max-width:760px}
+.a-card{background:var(--sf);border:1px solid var(--bd);border-left:3px solid var(--pr);
+  border-radius:0 var(--r) var(--r) 0;padding:20px;margin-bottom:14px}
+.a-lbl{font-size:10px;font-weight:700;color:var(--mt);text-transform:uppercase;
+  letter-spacing:.08em;margin-bottom:8px}
+.a-text{font-size:15px;line-height:1.8;color:var(--tx)}
+.a-by{font-size:11px;color:var(--mt);margin-top:8px;text-align:right;font-style:italic}
+.metrics-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.mp{flex:1;min-width:76px;text-align:center;padding:12px 8px;
+  border-radius:10px;border:1px solid rgba(128,128,128,.12);background:rgba(128,128,128,.04)}
+.mp-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.mp-val{font-size:20px;font-weight:800;line-height:1}
+.mp-bar{height:3px;border-radius:2px;background:rgba(128,128,128,.15);overflow:hidden;margin-top:6px}
+.mp-fill{height:100%;border-radius:2px;transition:width .5s}
+.chunks-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:18px}
+.chunks-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.chunk-item{padding:12px 14px;border:1px solid var(--bd);border-radius:0 8px 8px 0;
+  margin-bottom:8px;background:var(--sf)}
+.ci-hdr{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.ci-rank{font-size:10px;font-weight:800;color:#fff;background:var(--pr);
+  border-radius:5px;padding:2px 7px;flex-shrink:0}
+.ci-title{font-size:11px;font-weight:600;color:var(--mt);flex:1;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.ci-score{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;
+  white-space:nowrap;background:rgba(128,128,128,.08)}
+.ci-text{font-size:12px;color:var(--tx);line-height:1.6}
+
+/* ── GENERIC CARDS ── */
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);
+  padding:20px;margin-bottom:14px;transition:background .3s}
+.card-h{font-size:11px;font-weight:700;color:var(--mt);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:12px}
+.inp{width:100%;padding:9px 13px;border:1px solid var(--bd);border-radius:8px;
+  font-size:14px;color:var(--tx);background:var(--sf2);outline:none;transition:border-color .2s}
 .inp:focus{border-color:var(--pr)}
-.inp-big{font-size:15px;padding:12px 16px}
-.inp-area{resize:vertical;min-height:100px;font-family:monospace;font-size:13px}
+.inp-area{resize:vertical;min-height:96px;font-family:monospace;font-size:13px}
+.fl{font-size:11px;font-weight:700;color:var(--mt);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:6px;display:block}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:8px;
+  font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;
+  font-family:inherit;white-space:nowrap}
+.btn-p{background:var(--pr);color:#fff}.btn-p:hover{opacity:.87}
+.btn-d{background:rgba(248,81,73,.1);color:var(--er);border:1px solid rgba(248,81,73,.25)}.btn-d:hover{background:rgba(248,81,73,.18)}
+.btn-g{background:transparent;color:var(--mt);border:1px solid var(--bd)}.btn-g:hover{border-color:var(--pr);color:var(--pr)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.ok{color:var(--ok);font-size:13px}.wn{color:var(--wn);font-size:13px}.er{color:var(--er);font-size:13px}
+.dt{width:100%;border-collapse:collapse}
+.dt th{font-size:10px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.06em;padding:7px 10px;border-bottom:1px solid var(--bd);text-align:left}
+.dt td{font-size:12px;padding:8px 10px;border-bottom:1px solid rgba(128,128,128,.07);color:var(--tx)}
+.dt .m{color:var(--mt)}
+.tip-i{font-size:10px;color:var(--mt);margin-left:4px;cursor:help;position:relative}
+.tip-box{display:none;position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);
+  background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;
+  font-size:11px;line-height:1.55;width:210px;white-space:normal;font-weight:400;
+  z-index:999;box-shadow:var(--sh);color:var(--tx)}
+.tip-i:hover .tip-box{display:block}
 
-/* ── method selector ── */
-.method-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
-.meth-card{border:1px solid var(--bd);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .2s;background:var(--sf2);text-align:left}
-.meth-card:hover,.meth-card.sel{border-color:var(--pr);background:var(--pr-bg)}
-.meth-card.sel .meth-name{color:var(--pr)}
-.meth-name{font-size:12px;font-weight:800;color:var(--tx);margin-bottom:3px}
-.meth-desc{font-size:11px;color:var(--mt);line-height:1.45}
-.meth-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;margin-top:6px;display:inline-block}
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;
+  display:flex;align-items:center;justify-content:center;padding:24px}
+.modal{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:28px;
+  max-width:420px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+.m-icon{font-size:2rem;margin-bottom:10px}
+.m-title{font-size:1rem;font-weight:800;color:var(--tx);margin-bottom:8px}
+.m-body{font-size:.87rem;color:var(--mt);line-height:1.65;margin-bottom:12px}
+.m-q{font-size:.88rem;font-weight:600;color:var(--pr);background:var(--pr-bg);
+  padding:9px 13px;border-radius:8px;margin-bottom:18px}
+.m-btns{display:flex;gap:8px}
 
-/* ── buttons ── */
-.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;font-family:inherit;white-space:nowrap}
-.btn-pr{background:var(--pr);color:#fff}.btn-pr:hover{opacity:.88}
-.btn-ghost{background:transparent;color:var(--mt);border:1px solid var(--bd)}.btn-ghost:hover{border-color:var(--pr);color:var(--pr)}
-.btn-danger{background:rgba(248,81,73,.1);color:var(--er);border:1px solid rgba(248,81,73,.25)}.btn-danger:hover{background:rgba(248,81,73,.18)}
-.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
-
-/* ── metrics pills ── */
-.metrics-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
-.metric-pill{flex:1;min-width:80px;text-align:center;padding:14px 10px;border-radius:12px;border:1px solid rgba(128,128,128,.12);background:rgba(128,128,128,.04)}
-.metric-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
-.metric-val{font-size:22px;font-weight:800;line-height:1.1;margin-bottom:4px}
-.metric-bar-track{height:3px;border-radius:2px;background:rgba(128,128,128,.15);overflow:hidden}
-.metric-bar-fill{height:100%;border-radius:2px;transition:width .6s}
-
-/* ── chunk card ── */
-.chunk-card{padding:13px 15px;border:1px solid var(--bd);border-radius:0 8px 8px 0;margin-bottom:9px;background:var(--sf)}
-.chunk-header{display:flex;align-items:center;gap:7px;margin-bottom:7px}
-.chunk-rank{font-size:11px;font-weight:800;color:#fff;background:var(--pr);border-radius:5px;padding:2px 8px;letter-spacing:.04em;flex-shrink:0}
-.chunk-title{font-size:12px;font-weight:600;color:var(--mt);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chunk-score{font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;white-space:nowrap}
-.chunk-text{font-size:13px;color:var(--tx);line-height:1.65}
-
-/* ── answer card ── */
-.answer-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:22px;margin-bottom:16px;border-left:3px solid var(--pr)}
-.answer-label{font-size:10px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
-.answer-text{font-size:15px;line-height:1.8;color:var(--tx)}
-.answer-by{font-size:11px;color:var(--mt);margin-top:10px;text-align:right;font-style:italic}
-
-/* ── modal ── */
-.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px}
-.modal{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:30px;max-width:440px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.4)}
-.modal-icon{font-size:2.2rem;margin-bottom:12px}
-.modal-title{font-size:1.05rem;font-weight:800;color:var(--tx);margin-bottom:8px}
-.modal-body{font-size:.88rem;color:var(--mt);line-height:1.65;margin-bottom:14px}
-.modal-q{font-size:.9rem;font-weight:600;color:var(--pr);background:var(--pr-bg);padding:10px 14px;border-radius:8px;margin-bottom:20px}
-.modal-actions{display:flex;gap:10px}
-
-/* ── tooltip ── */
-.ttp{position:relative;display:inline-flex;align-items:center;cursor:help}
-.ttp .tip{visibility:hidden;opacity:0;background:var(--sf);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:9px 13px;font-size:12px;line-height:1.55;width:230px;position:absolute;z-index:999;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);transition:opacity .15s;pointer-events:none;white-space:normal;font-weight:400;box-shadow:var(--sh)}
-.ttp:hover .tip{visibility:visible;opacity:1}
-.tip-icon{font-size:11px;color:var(--mt);margin-left:4px}
-
-/* ── info box ── */
-.info-box{border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.6;margin-bottom:14px}
-.info-box.blue{background:var(--pr-bg);border:1px solid var(--pr-bd);color:var(--tx)}
-.info-box.green{background:rgba(63,185,80,.07);border:1px solid rgba(63,185,80,.2);color:var(--tx)}
-
-/* ── step bar ── */
-.step-bar{display:flex;align-items:center;gap:0;margin-bottom:22px}
-.step-item{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600}
-.step-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;transition:all .3s}
-.step-done .step-dot{background:var(--ok);color:#fff}
-.step-active .step-dot{background:var(--pr);color:#fff}
-.step-idle .step-dot{background:var(--sf2);color:var(--mt);border:1px solid var(--bd)}
-.step-done .step-lbl{color:var(--ok)}
-.step-active .step-lbl{color:var(--pr)}
-.step-idle .step-lbl{color:var(--mt)}
-.step-line{flex:1;height:1px;background:var(--bd);margin:0 8px;min-width:20px}
-
-/* ── tables ── */
-.data-table{width:100%;border-collapse:collapse}
-.data-table th{font-size:10px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.06em;padding:8px 12px;border-bottom:1px solid var(--bd);text-align:left}
-.data-table td{font-size:12px;padding:9px 12px;border-bottom:1px solid rgba(128,128,128,.07);color:var(--tx)}
-.data-table td.muted{color:var(--mt)}
-
-/* ── model tip ── */
-.model-tip{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:8px;font-size:13px;margin-top:8px;border:1px solid}
-
-/* ── sections divider ── */
-.divider{height:1px;background:var(--bd);margin:20px 0}
-
-/* ── responsive ── */
-@media(max-width:700px){
-  .mode-grid,.ex-grid,.method-row{grid-template-columns:1fr}
-  .metrics-row .metric-pill{min-width:calc(50% - 5px)}
+/* responsive */
+@media(max-width:640px){
+  .l-cards,.ex-grid,.expert-panel{grid-template-columns:1fr}
+  .meth-row{flex-direction:column}
 }
 </style>
 </head>
-<body>{%app_entry%}
-<footer>{%config%}{%scripts%}{%renderer%}</footer>
+<body>{%app_entry%}<footer>{%config%}{%scripts%}{%renderer%}</footer>
 </body></html>"""
 
 # ─────────────────────────────────────────────────────────────────────────────
-# DATA
+# STATIC DATA
 # ─────────────────────────────────────────────────────────────────────────────
 EXAMPLES = [
-    {
-        "icon": "💬",
-        "persona": "Curious beginner",
-        "question": "What is a large language model?",
-        "query": "survey large language models GPT transformer overview",
-        "hint": "Great starting point",
-        "simple_desc": "Learn what AI chatbots like ChatGPT actually are.",
-        "expert_desc": "LLM survey: architecture, pretraining, scaling laws.",
-    },
-    {
-        "icon": "🔍",
-        "persona": "Everyday user",
-        "question": "How does AI-powered search understand what I mean?",
-        "query": "dense retrieval semantic search neural information retrieval",
-        "hint": "Popular question",
-        "simple_desc": "Discover why AI search understands meaning, not just words.",
-        "expert_desc": "Dense vs sparse retrieval: embedding similarity vs TF-IDF.",
-    },
-    {
-        "icon": "🤖",
-        "persona": "Tech enthusiast",
-        "question": "How does attention work inside a transformer?",
-        "query": "attention mechanism transformer self-attention BERT GPT",
-        "hint": "Core concept",
-        "simple_desc": "Understand the key idea behind modern AI systems.",
-        "expert_desc": "Self-attention: Q/K/V projections, softmax, multi-head.",
-    },
-    {
-        "icon": "📊",
-        "persona": "Data scientist",
-        "question": "How is retrieval quality measured in RAG systems?",
-        "query": "RAG evaluation faithfulness hallucination context precision recall",
-        "hint": "Advanced topic",
-        "simple_desc": "Learn how scientists check if AI answers are trustworthy.",
-        "expert_desc": "RAGAS: faithfulness, answer relevance, context precision.",
-    },
-    {
-        "icon": "🔀",
-        "persona": "ML engineer",
-        "question": "Why does hybrid search outperform BM25 or vector search alone?",
-        "query": "hybrid retrieval BM25 dense reciprocal rank fusion evaluation",
-        "hint": "What this app demonstrates",
-        "simple_desc": "See why combining search methods gives better answers.",
-        "expert_desc": "RRF: 1/(k+rank) fusion, ablation vs single-method baselines.",
-    },
-    {
-        "icon": "🏥",
-        "persona": "Domain specialist",
-        "question": "Can AI read medical papers and answer clinical questions?",
-        "query": "biomedical NLP clinical question answering PubMed language model",
-        "hint": "Real-world application",
-        "simple_desc": "Explore AI reading medical research to answer health questions.",
-        "expert_desc": "Domain RAG on biomedical corpora: USMLE, PubMedQA benchmarks.",
-    },
+    {"icon":"💬","persona":"Curious beginner",   "q":"What is a large language model?",                           "arxiv":"survey large language models GPT transformer overview",          "tag":"Great start"},
+    {"icon":"🔍","persona":"Everyday user",       "q":"How does AI understand what I mean when I search?",         "arxiv":"dense retrieval semantic search neural information retrieval",    "tag":"Popular"},
+    {"icon":"🤖","persona":"Tech enthusiast",     "q":"How does the attention mechanism work?",                    "arxiv":"attention mechanism transformer self-attention BERT",             "tag":"Core concept"},
+    {"icon":"📊","persona":"Data scientist",      "q":"How is retrieval quality measured in RAG systems?",         "arxiv":"RAG evaluation faithfulness hallucination context grounding",      "tag":"Advanced"},
+    {"icon":"🔀","persona":"ML engineer",         "q":"Why does hybrid search beat BM25 or vector search alone?",  "arxiv":"hybrid retrieval BM25 dense reciprocal rank fusion evaluation",   "tag":"What this app shows"},
+    {"icon":"🏥","persona":"Domain specialist",   "q":"Can AI answer medical questions from research papers?",     "arxiv":"biomedical NLP clinical question answering PubMed language model", "tag":"Real-world use"},
 ]
 
 METHODS = {
-    "bm25":   {"label": "BM25",        "color": "var(--c1)", "badge_bg": "rgba(210,153,34,.12)",  "badge_bd": "rgba(210,153,34,.25)",  "desc": "Keyword matching — fast and precise on exact technical terms.", "simple": "Searches for exact words"},
-    "vector": {"label": "Dense Vector","color": "var(--c2)", "badge_bg": "rgba(129,140,248,.12)", "badge_bd": "rgba(129,140,248,.25)", "desc": "Semantic similarity — finds related ideas even with different wording.", "simple": "Understands meaning"},
-    "hybrid": {"label": "Hybrid RRF",  "color": "var(--c3)", "badge_bg": "rgba(63,185,80,.12)",   "badge_bd": "rgba(63,185,80,.25)",   "desc": "Fuses BM25 + Vector via Reciprocal Rank Fusion — best of both worlds.", "simple": "Best of both ⭐"},
+    "bm25":   {"label":"BM25",         "color":"var(--c1)", "simple":"Searches exact words",      "expert":"Probabilistic sparse retrieval (TF-IDF based)"},
+    "vector": {"label":"Dense Vector", "color":"var(--c2)", "simple":"Understands meaning",        "expert":"Embedding cosine similarity via FAISS IndexFlatIP"},
+    "hybrid": {"label":"Hybrid RRF ★", "color":"var(--c3)", "simple":"Best of both (recommended)","expert":"Reciprocal Rank Fusion k=60 over BM25 + dense lists"},
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# SHARED COMPONENT HELPERS
+# SMALL HELPERS
 # ─────────────────────────────────────────────────────────────────────────────
+def _score_color(s):
+    return "var(--ok)" if s >= 0.035 else ("var(--wn)" if s >= 0.025 else "var(--mt)")
 
-def _tip(txt, w=230):
-    return html.Span([
-        html.Span("ⓘ", className="tip-icon"),
-        html.Span(txt, className="tip", style={"width": f"{w}px"}),
-    ], className="ttp")
-
-
-def _label(text, tip_txt="", tip_w=230):
-    ch = [html.Span(text)]
-    if tip_txt:
-        ch.append(_tip(tip_txt, tip_w))
-    return html.Div(ch, className="form-label")
-
-
-def _metric_pill(label, value, color, show_bar=True):
+def _metric(label, value, color):
     try:
         pct = f"{max(0.0, min(1.0, float(value))) * 100:.0f}%"
+        bar = html.Div(html.Div(style={"height":"100%","borderRadius":"2px","background":color,"width":pct,"transition":"width .5s"}), className="mp-bar")
     except Exception:
-        pct = "0%"
-        show_bar = False
+        bar = html.Div()
     return html.Div([
-        html.Div(label, className="metric-label", style={"color": color}),
-        html.Div(str(value), className="metric-val", style={"color": color}),
-        (html.Div([html.Div(style={"height": "3px", "background": color, "width": pct}, className="metric-bar-fill")], className="metric-bar-track") if show_bar else html.Div()),
-    ], className="metric-pill")
+        html.Div(label, className="mp-lbl", style={"color":color}),
+        html.Div(str(value), className="mp-val", style={"color":color}),
+        bar,
+    ], className="mp")
 
-
-def _score_color(score):
-    return "var(--ok)" if score >= 0.035 else ("var(--wn)" if score >= 0.025 else "var(--mt)")
-
-
-def _chunk_card(r, compact=False):
+def _chunk(r, compact=False):
     ch = r["chunk"]
-    txt = (ch["text"][:220] + "…") if compact and len(ch["text"]) > 220 else ch["text"]
-    sc = r["score"]
-    sc_col = _score_color(sc)
+    txt = (ch["text"][:200]+"…") if compact and len(ch["text"])>200 else ch["text"]
+    sc = r["score"]; col = _score_color(sc)
     return html.Div([
         html.Div([
-            html.Span(f"#{r['rank']}", className="chunk-rank"),
-            html.Span(ch.get("title", "")[:70], className="chunk-title"),
-            html.Span(f"↑ {sc:.4f}", className="chunk-score",
-                      style={"background": f"rgba(128,128,128,.08)", "color": sc_col}),
-        ], className="chunk-header"),
-        html.P(txt, className="chunk-text"),
-    ], className="chunk-card", style={"borderLeft": f"3px solid {sc_col}"})
+            html.Span(f"#{r['rank']}", className="ci-rank"),
+            html.Span(ch.get("title","")[:70], className="ci-title"),
+            html.Span(f"↑ {sc:.4f}", className="ci-score", style={"color":col}),
+        ], className="ci-hdr"),
+        html.P(txt, className="ci-text"),
+    ], className="chunk-item", style={"borderLeft":f"3px solid {col}"})
 
-
-def _step_bar(active):
-    steps = [("Topic", 0), ("Papers", 1), ("Ask", 2)]
+def _steps_bar(active):
+    labels = [("Question",0),("Papers",1),("Answer",2)]
     items = []
-    for i, (lbl, _) in enumerate(steps):
-        state = "done" if i < active else ("active" if i == active else "idle")
+    for i,(lbl,_) in enumerate(labels):
+        s = "done" if i<active else ("active" if i==active else "idle")
         items.append(html.Div([
-            html.Div("✓" if state == "done" else str(i + 1), className="step-dot"),
-            html.Span(lbl, className="step-lbl"),
-        ], className=f"step-item step-{state}"))
-        if i < len(steps) - 1:
-            items.append(html.Div(className="step-line"))
-    return html.Div(items, className="step-bar")
-
-
-def _model_tip_div(mid):
-    from app.models.generator import DEFAULT_MODEL
-    tips = {
-        "google/flan-t5-base":  ("⚡", "rgba(210,153,34,.14)", "rgba(210,153,34,.3)",  "var(--wn)", "Fast but weaker answers. Good for quick testing."),
-        "google/flan-t5-large": ("✅", "rgba(63,185,80,.1)",   "rgba(63,185,80,.25)",  "var(--ok)", "Recommended — best balance of speed and quality."),
-        "google/flan-t5-xl":    ("🧠", "rgba(129,140,248,.1)", "rgba(129,140,248,.3)", "var(--pr)", "Highest quality — expect ~60 s per answer on CPU."),
-    }
-    ic, bg, bd, col, msg = tips.get(mid or DEFAULT_MODEL, tips["google/flan-t5-large"])
-    return html.Div([
-        html.Span(ic, style={"fontSize": "15px", "marginRight": "8px"}),
-        html.Span(msg, style={"fontSize": "13px", "color": col}),
-    ], className="model-tip",
-       style={"background": bg, "borderColor": bd})
-
+            html.Div("✓" if s=="done" else str(i+1), className="st-dot"),
+            html.Span(lbl, className="st-lbl"),
+        ], className=f"st {s}"))
+        if i < len(labels)-1:
+            items.append(html.Div(className="st-line"))
+    return html.Div(items, className="steps")
 
 def _papers_table(docs):
-    if not docs:
-        return html.P("No papers yet.", style={"color": "var(--mt)", "fontSize": "13px"})
+    if not docs: return html.P("No papers yet.", style={"color":"var(--mt)","fontSize":"13px"})
     return html.Table([
-        html.Thead(html.Tr([html.Th(h) for h in ["Title", "Authors", "Published", "Category"]])),
+        html.Thead(html.Tr([html.Th(h) for h in ["Title","Authors","Published","Category"]])),
         html.Tbody([html.Tr([
-            html.Td(d.get("title", "")[:80]),
-            html.Td(d.get("authors", "")[:36], className="muted"),
-            html.Td(d.get("published", ""), className="muted"),
-            html.Td(d.get("categories", ""), className="muted"),
+            html.Td(d.get("title","")[:80]), html.Td(d.get("authors","")[:34], className="m"),
+            html.Td(d.get("published",""), className="m"), html.Td(d.get("categories",""), className="m"),
         ]) for d in docs]),
-    ], className="data-table")
+    ], className="dt")
 
+def _model_tip_el(mid):
+    tips = {
+        "google/flan-t5-base":  ("⚡","rgba(210,153,34,.12)","rgba(210,153,34,.28)","var(--wn)","Fast but weaker. Good for testing."),
+        "google/flan-t5-large": ("✅","rgba(63,185,80,.1)","rgba(63,185,80,.25)","var(--ok)","Recommended — best balance of speed and quality."),
+        "google/flan-t5-xl":    ("🧠","rgba(129,140,248,.1)","rgba(129,140,248,.28)","var(--pr)","Highest quality — expect ~60 s per answer on free CPU."),
+    }
+    from app.models.generator import DEFAULT_MODEL
+    ic,bg,bd,col,msg = tips.get(mid or DEFAULT_MODEL, tips["google/flan-t5-large"])
+    return html.Div([html.Span(ic,style={"fontSize":"14px","marginRight":"7px"}), html.Span(msg,style={"fontSize":"12px","color":col})],
+        style={"padding":"9px 13px","borderRadius":"8px","border":f"1px solid {bd}","background":bg,"display":"flex","alignItems":"center","marginTop":"8px"})
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CHARTS
 # ─────────────────────────────────────────────────────────────────────────────
+def _cc(t):
+    if t=="dark": return {"bm25":"#d29922","vector":"#818cf8","hybrid":"#3fb950","bg":"rgba(0,0,0,0)","paper":"rgba(0,0,0,0)","txt":"#8b949e","grid":"rgba(255,255,255,.05)","font":"#f0f6fc"}
+    return {"bm25":"#f59e0b","vector":"#6366f1","hybrid":"#10b981","bg":"rgba(0,0,0,0)","paper":"rgba(0,0,0,0)","txt":"#64748b","grid":"rgba(0,0,0,.06)","font":"#0f172a"}
 
-def _cc(theme):
-    if theme == "dark":
-        return {"bm25": "#d29922", "vector": "#818cf8", "hybrid": "#3fb950",
-                "bg": "rgba(0,0,0,0)", "paper": "rgba(0,0,0,0)",
-                "text": "#8b949e", "grid": "rgba(255,255,255,.05)", "font": "#f0f6fc"}
-    return {"bm25": "#f59e0b", "vector": "#6366f1", "hybrid": "#10b981",
-            "bg": "rgba(0,0,0,0)", "paper": "rgba(0,0,0,0)",
-            "text": "#64748b", "grid": "rgba(0,0,0,.06)", "font": "#0f172a"}
+def _base(c,h=260,title=""):
+    return dict(plot_bgcolor=c["bg"],paper_bgcolor=c["paper"],height=h,
+        font=dict(family="Inter,sans-serif",size=11,color=c["font"]),
+        margin=dict(l=12,r=12,t=38 if title else 12,b=12),
+        title=dict(text=title,font=dict(size=12,color=c["font"]),x=0.02) if title else None,
+        legend=dict(orientation="h",yanchor="bottom",y=1.02,xanchor="right",x=1,font=dict(size=11)),
+        xaxis=dict(showgrid=False,color=c["txt"],tickfont=dict(size=11)),
+        yaxis=dict(gridcolor=c["grid"],color=c["txt"],tickfont=dict(size=11)))
 
-
-def _layout(c, h=260, title=""):
-    return dict(
-        plot_bgcolor=c["bg"], paper_bgcolor=c["paper"], height=h,
-        font=dict(family="Inter,sans-serif", size=11, color=c["font"]),
-        margin=dict(l=12, r=12, t=40 if title else 12, b=12),
-        title=dict(text=title, font=dict(size=12, color=c["font"]), x=0.02) if title else None,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=11)),
-        xaxis=dict(showgrid=False, color=c["text"], tickfont=dict(size=11)),
-        yaxis=dict(gridcolor=c["grid"], color=c["text"], tickfont=dict(size=11)),
-    )
-
-
-def _radar(metrics, theme):
-    c = _cc(theme)
-    cats = ["Relevance", "Diversity", "Avg Score"]
-    fig = go.Figure()
-    for m in ["bm25", "vector", "hybrid"]:
-        mt = metrics.get(m, {})
-        vals = [mt.get("context_relevance", 0), mt.get("diversity", 0), mt.get("avg_score", 0)]
-        fig.add_trace(go.Scatterpolar(
-            r=vals + [vals[0]], theta=cats + [cats[0]],
-            name=METHODS[m]["label"], fill="toself", fillcolor=c[m], opacity=0.14,
-            line=dict(color=c[m], width=2.5), marker=dict(size=7, color=c[m])))
-    fig.update_layout(
-        polar=dict(bgcolor=c["bg"],
-                   radialaxis=dict(visible=True, range=[0, 1], tickfont=dict(size=9, color=c["text"]), gridcolor=c["grid"], linecolor=c["grid"]),
-                   angularaxis=dict(tickfont=dict(size=12, color=c["font"]), linecolor=c["grid"], gridcolor=c["grid"])),
-        paper_bgcolor=c["paper"], plot_bgcolor=c["bg"], height=250,
-        font=dict(family="Inter,sans-serif", size=11, color=c["font"]),
-        margin=dict(l=12, r=12, t=12, b=12),
-        legend=dict(orientation="h", yanchor="bottom", y=1.04, xanchor="right", x=1, font=dict(size=11)),
-    )
+def _radar(m, t):
+    c=_cc(t); cats=["Relevance","Diversity","Avg"]
+    fig=go.Figure()
+    for k in ["bm25","vector","hybrid"]:
+        v=[m.get(k,{}).get("context_relevance",0),m.get(k,{}).get("diversity",0),m.get(k,{}).get("avg_score",0)]
+        fig.add_trace(go.Scatterpolar(r=v+[v[0]],theta=cats+[cats[0]],name=METHODS[k]["label"],
+            fill="toself",fillcolor=c[k],opacity=0.14,line=dict(color=c[k],width=2.5),marker=dict(size=7,color=c[k])))
+    fig.update_layout(polar=dict(bgcolor=c["bg"],
+        radialaxis=dict(visible=True,range=[0,1],tickfont=dict(size=9,color=c["txt"]),gridcolor=c["grid"],linecolor=c["grid"]),
+        angularaxis=dict(tickfont=dict(size=12,color=c["font"]),linecolor=c["grid"],gridcolor=c["grid"])),
+        paper_bgcolor=c["paper"],height=240,font=dict(family="Inter,sans-serif",size=11,color=c["font"]),
+        margin=dict(l=12,r=12,t=12,b=12),
+        legend=dict(orientation="h",yanchor="bottom",y=1.04,xanchor="right",x=1,font=dict(size=11)))
     return fig
 
+def _bar(m,t):
+    c=_cc(t); fig=go.Figure()
+    for k in ["bm25","vector","hybrid"]:
+        vals=[m.get(k,{}).get("context_relevance",0),m.get(k,{}).get("diversity",0)]
+        fig.add_trace(go.Bar(name=METHODS[k]["label"],x=["Relevance","Diversity"],y=vals,
+            marker_color=c[k],marker=dict(cornerradius=4),
+            text=[f"{v:.3f}" for v in vals],textposition="outside",
+            textfont=dict(size=10,color=c["font"]),cliponaxis=False))
+    lo=_base(c,h=250); lo["barmode"]="group"; lo["yaxis"]["range"]=[0,1.2]
+    fig.update_layout(**lo); return fig
 
-def _bar(metrics, theme):
-    c = _cc(theme)
-    fig = go.Figure()
-    for m in ["bm25", "vector", "hybrid"]:
-        mt = metrics.get(m, {})
-        vals = [mt.get("context_relevance", 0), mt.get("diversity", 0)]
-        fig.add_trace(go.Bar(
-            name=METHODS[m]["label"], x=["Context Relevance", "Diversity"], y=vals,
-            marker_color=c[m], marker=dict(cornerradius=4),
-            text=[f"{v:.3f}" for v in vals], textposition="outside",
-            textfont=dict(size=10, color=c["font"]), cliponaxis=False))
-    lo = _layout(c, h=260)
-    lo["barmode"] = "group"
-    lo["yaxis"]["range"] = [0, 1.2]
-    fig.update_layout(**lo)
-    return fig
-
-
-def _area(questions, agg, theme):
-    c = _cc(theme)
-    labels = [q[:30] + "…" if len(q) > 30 else q for q in questions]
-    fig = go.Figure()
-    for m in ["bm25", "vector", "hybrid"]:
-        fig.add_trace(go.Scatter(
-            name=METHODS[m]["label"], x=labels, y=agg[m]["context_relevance"],
-            mode="lines+markers", line=dict(color=c[m], width=2.5, shape="spline"),
-            fill="tozeroy", fillcolor=c[m], opacity=0.8,
-            marker=dict(size=7, color=c[m], line=dict(color="white", width=1.5))))
-    lo = _layout(c, h=270, title="Context relevance per query")
-    lo["xaxis"]["tickangle"] = -22
-    fig.update_layout(**lo)
-    return fig
-
+def _area(qs,agg,t):
+    c=_cc(t); labels=[q[:28]+"…" if len(q)>28 else q for q in qs]; fig=go.Figure()
+    for k in ["bm25","vector","hybrid"]:
+        fig.add_trace(go.Scatter(name=METHODS[k]["label"],x=labels,y=agg[k]["context_relevance"],
+            mode="lines+markers",line=dict(color=c[k],width=2.5,shape="spline"),
+            fill="tozeroy",fillcolor=c[k],opacity=0.8,
+            marker=dict(size=7,color=c[k],line=dict(color="white",width=1.5))))
+    lo=_base(c,h=260,title="Context relevance per query"); lo["xaxis"]["tickangle"]=-20
+    fig.update_layout(**lo); return fig
 
 # ─────────────────────────────────────────────────────────────────────────────
-# SCREENS
+# FULL LAYOUT  —  all IDs always present
 # ─────────────────────────────────────────────────────────────────────────────
-
-def _landing():
-    """Full-page onboarding — pick your mode."""
-    return html.Div([
-        html.Div("🔬 research-rag-bench", className="landing-badge"),
-        html.H1([
-            "Ask questions.\n",
-            html.Span("Get answers from real research.", className="grad"),
-        ], className="landing-title"),
-        html.P([
-            "This app fetches real scientific papers, searches them using AI, and writes a grounded answer. ",
-            html.Strong("No API key. No cost. Fully open-source."),
-        ], className="landing-sub"),
-
-        html.Div("Who are you?", style={"fontSize": "13px", "fontWeight": "700", "color": "var(--mt)",
-                                         "textTransform": "uppercase", "letterSpacing": ".07em", "marginBottom": "12px"}),
-        html.Div([
-            html.Button([
-                html.Span("🙋", className="mode-icon"),
-                html.Div("I'm curious about AI", className="mode-title"),
-                html.Div("No technical background needed. I'll guide you step-by-step with plain English, examples, and simple controls.", className="mode-desc"),
-                html.Span("Simple mode", className="mode-tag"),
-            ], id="pick-simple", className="mode-card general", n_clicks=0),
-            html.Button([
-                html.Span("🔬", className="mode-icon"),
-                html.Div("I'm a data scientist / researcher", className="mode-title"),
-                html.Div("Show me full technical controls — retrieval method, top-k, chunking strategy, architecture metrics, and evaluation charts.", className="mode-desc"),
-                html.Span("Expert mode", className="mode-tag"),
-            ], id="pick-expert", className="mode-card expert", n_clicks=0),
-        ], className="mode-grid"),
-
-        html.Div("You can switch modes at any time from the top bar.", className="landing-footer"),
-    ], className="landing")
-
-
-def _app_shell(mode, tab, inner):
-    """Persistent shell wrapping every app screen."""
-    from app.store import store
-    s = store.stats()
-    stats_txt = f"📄 {s['n_documents']} papers · ✂️ {s['n_chunks']} chunks · {'✅ ready' if s['has_faiss'] else '⚪ not indexed'}"
-
-    tabs = [
-        ("🏠  Ask",     "ask"),
-        ("📥  Load",    "load"),
-        ("⚖️  Compare", "compare"),
-        ("📊  Evaluate","evaluate"),
-    ]
-    tab_btns = [
-        html.Button(lbl, id=f"tab-{v}", className=f"tab-btn {'active' if tab == v else ''}", n_clicks=0)
-        for lbl, v in tabs
-    ]
-
-    return html.Div([
-        # top bar
-        html.Div([
-            html.Div([
-                html.Span("🔬", style={"fontSize": "18px"}),
-                html.Span("research-rag-bench", className="topbar-logo"),
-                html.Span("Hybrid RAG · arXiv", className="topbar-badge"),
-            ], className="topbar-left"),
-            html.Div([
-                html.Span(stats_txt, className="topbar-stats", id="header-stats"),
-                html.Button(
-                    ["🙋 Simple" if mode == "simple" else "🔬 Expert", " ↕"],
-                    id="switch-mode-btn", className="mode-chip", n_clicks=0,
-                    title="Switch mode"),
-                html.Button("🌙", id="theme-toggle", className="icon-btn", title="Toggle dark/light"),
-            ], className="topbar-right"),
-        ], className="topbar"),
-
-        # tab bar
-        html.Div(tab_btns, className="tabs-bar"),
-
-        # content
-        html.Div(inner, id="tab-body",
-                 style={"background": "var(--bg)", "minHeight": "calc(100vh - 96px)"}),
-
-        # modal slot
-        html.Div(id="modal-slot"),
-        dcc.Store(id="pending-ex", data=None),
-    ], className="app-shell")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# TAB CONTENT BUILDERS
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _ask_tab(mode, step=0):
+def _full_layout():
     from app.models.generator import MODEL_OPTIONS, DEFAULT_MODEL
-    simple = mode == "simple"
-    opts = [{"label": v["label"], "value": k} for k, v in MODEL_OPTIONS.items()]
+    gen_opts = [{"label":v["label"],"value":k} for k,v in MODEL_OPTIONS.items()]
 
-    # example cards
-    ex_cards = [
+    # example card buttons — always rendered
+    ex_btns = [
         html.Button([
-            html.Span(e["icon"], className="ex-card-icon"),
-            html.Div(e["persona"], className="ex-card-persona"),
-            html.Div(e["question"], className="ex-card-q"),
-            html.Div(e["simple_desc"] if simple else e["expert_desc"],
-                     style={"fontSize": "11px", "color": "var(--mt)", "marginTop": "5px", "lineHeight": "1.4"}),
-            html.Div(e["hint"], className="ex-card-hint"),
-        ], id={"type": "ex-btn", "index": i}, className="ex-card", n_clicks=0,
-           style={"width": "100%", "fontFamily": "inherit"})
-        for i, e in enumerate(EXAMPLES)
+            html.Span(e["icon"], className="ex-icon"),
+            html.Div(e["persona"], className="ex-persona"),
+            html.Div(e["q"], className="ex-q"),
+            html.Span(e["tag"], className="ex-tag"),
+        ], id={"type":"exbtn","index":i}, className="ex-card", n_clicks=0,
+           style={"width":"100%","fontFamily":"inherit"})
+        for i,e in enumerate(EXAMPLES)
     ]
 
-    # method selector (hidden in simple mode — defaults to hybrid)
-    if simple:
-        method_section = html.Div([
-            dcc.RadioItems(id="query-method", value="hybrid", options=[{"label": "hybrid", "value": "hybrid"}], style={"display": "none"}),
-            dcc.Slider(id="query-k", min=5, max=5, value=5, marks={}, style={"display": "none"}),
-        ])
-    else:
-        method_cards = [
-            html.Button([
-                html.Div(METHODS[m]["label"], className="meth-name"),
-                html.Div(METHODS[m]["desc"], className="meth-desc"),
-                html.Span(METHODS[m]["label"], className="meth-badge",
-                          style={"background": METHODS[m]["badge_bg"],
-                                 "color": METHODS[m]["color"],
-                                 "border": f"1px solid {METHODS[m]['badge_bd']}"}),
-            ], id=f"meth-{m}", className="meth-card sel" if m == "hybrid" else "meth-card",
-               n_clicks=0, style={"fontFamily": "inherit", "cursor": "pointer"})
-            for m in ["bm25", "vector", "hybrid"]
-        ]
-        method_section = html.Div([
-            _label("Search method", "How the system finds relevant passages. Hybrid is recommended for most questions."),
-            html.Div(method_cards, className="method-row"),
-            dcc.RadioItems(id="query-method", value="hybrid",
-                           options=[{"label": k, "value": k} for k in ["bm25", "vector", "hybrid"]],
-                           style={"display": "none"}),
-            html.Div([
-                _label("Number of results", "How many passages to read before writing the answer. 5 is a good default.", mt=True),
-                dcc.Slider(id="query-k", min=1, max=10, step=1, value=5,
-                           marks={i: str(i) for i in [1, 3, 5, 7, 10]},
-                           tooltip={"placement": "bottom"}),
-            ], style={"marginTop": "16px"}),
-        ])
-
-    generator_label = "Answer quality" if simple else "Generator model"
-    generator_tip = "Higher quality = smarter answers but slower. 'Balanced' is recommended." if simple else "Flan-T5 seq2seq. Larger = better answers, higher CPU time."
+    # method mini-cards — always rendered (hidden in simple via JS)
+    method_cards = [
+        html.Button([
+            html.Div(METHODS[m]["label"], className="mc-name"),
+            html.Div(METHODS[m]["expert"], className="mc-desc"),
+        ], id=f"mc-{m}", className="mc on" if m=="hybrid" else "mc",
+           n_clicks=0, style={"fontFamily":"inherit"})
+        for m in ["bm25","vector","hybrid"]
+    ]
 
     return html.Div([
-        _step_bar(step),
+        # ── stores ──────────────────────────────────────────────────────────
+        dcc.Store(id="s-theme",  data="dark",    storage_type="session"),
+        dcc.Store(id="s-mode",   data="landing", storage_type="session"),
+        dcc.Store(id="s-tab",    data="ask",     storage_type="session"),
+        dcc.Store(id="s-step",   data=0,         storage_type="session"),
+        dcc.Store(id="s-method", data="hybrid"),
+        dcc.Store(id="s-pex",    data=None),
+        dcc.Interval(id="iv-stats", interval=7000, n_intervals=0),
 
-        # examples
+        # ── LANDING (hidden when mode != landing) ──────────────────────────
         html.Div([
+            html.Div("🔬 research-rag-bench", className="l-badge"),
+            html.H1(["Ask questions. ", html.Span("Get answers from real research.", className="g")], className="l-title"),
+            html.P(["Fetches real scientific papers, searches them with AI, and writes a grounded answer. ", html.Strong("No API key. No cost. Open-source.")], className="l-sub"),
+            html.Div("How would you describe yourself?", style={"fontSize":"13px","fontWeight":"700","color":"var(--mt)","textTransform":"uppercase","letterSpacing":".07em","marginBottom":"12px","position":"relative","zIndex":"1"}),
             html.Div([
-                html.Span("✨ Try an example", style={"fontWeight": "700", "fontSize": "14px", "color": "var(--tx)"}),
-                html.Span(" — click any card and the app loads the papers automatically",
-                          style={"fontSize": "13px", "color": "var(--mt)"}),
-            ], style={"marginBottom": "10px"}),
-            html.Div(ex_cards, className="ex-grid"),
-        ], className="card"),
+                html.Button([html.Div(className="l-card-glow"), html.Span("🙋",className="l-icon"), html.Div("I'm new to AI / just curious",className="l-name"), html.Div("No technical knowledge needed — I'll guide you with plain English, ready-made examples, and simple controls.",className="l-desc"), html.Span("Simple mode",className="l-tag")], id="pick-s", className="l-card gen", n_clicks=0),
+                html.Button([html.Div(className="l-card-glow"), html.Span("🔬",className="l-icon"), html.Div("Data scientist / ML researcher",className="l-name"), html.Div("Show full technical controls — retrieval methods, chunking strategy, top-k, evaluation metrics, and architecture charts.",className="l-desc"), html.Span("Expert mode",className="l-tag")], id="pick-e", className="l-card exp", n_clicks=0),
+            ], className="l-cards"),
+            html.Div("You can switch modes at any time from the top bar.", className="l-note"),
+        ], id="screen-landing"),
 
-        # divider
-        html.Div([html.Span("— or type your own question —",
-                            style={"fontSize": "12px", "color": "var(--mt)", "background": "var(--bg)",
-                                   "padding": "0 14px", "position": "relative", "zIndex": "1"})],
-                 style={"textAlign": "center", "borderTop": "1px solid var(--bd)",
-                        "marginTop": "4px", "marginBottom": "20px", "lineHeight": "0"}),
-
-        # question input
+        # ── APP (hidden when mode == landing) ───────────────────────────────
         html.Div([
-            _label("Your question"),
-            dcc.Input(id="query-input", type="text",
-                      placeholder="What would you like to know from your indexed papers?",
-                      className="inp inp-big", debounce=False),
-            html.Div(style={"height": "14px"}),
-            method_section,
+            # topbar
             html.Div([
-                _label(generator_label, generator_tip),
-                dcc.Dropdown(id="query-model", options=opts, value=DEFAULT_MODEL,
-                             clearable=False, style={"fontSize": "13px"}),
-                html.Div(id="model-tip-out"),
-            ], style={"marginTop": "16px"}),
+                html.Div([html.Span("🔬",style={"fontSize":"17px"}), html.Span("research-rag-bench",className="tb-logo"), html.Span("Hybrid RAG · arXiv",className="tb-badge")], style={"display":"flex","alignItems":"center","gap":"8px"}),
+                html.Div([html.Span("",id="stats-txt",className="tb-stats"), html.Button("↕ Mode",id="sw-mode",className="ib"), html.Button("🌙",id="btn-theme",className="ib")], className="tb-right"),
+            ], className="topbar"),
+
+            # tab bar
             html.Div([
-                html.Button("💬  Get Answer", id="query-btn", className="btn btn-pr"),
-            ], className="btn-row"),
-        ], className="card"),
+                html.Button("🏠  Ask",     id="tab-ask",      className="tb on",  n_clicks=0),
+                html.Button("📥  Load",    id="tab-load",     className="tb",     n_clicks=0),
+                html.Button("⚖️  Compare", id="tab-compare",  className="tb",     n_clicks=0),
+                html.Button("📊  Evaluate",id="tab-evaluate", className="tb",     n_clicks=0),
+            ], className="tabs"),
 
-        # metrics legend (always visible, language adapts to mode)
-        html.Div([
-            html.Div(["📐 ", html.Span("What do the scores mean?")], className="card-title"),
+            # ── ASK TAB ─────────────────────────────────────────────────────
             html.Div([
-                html.Div([html.Span("Relevance", style={"fontWeight": "800", "color": "var(--pr)"}), html.Span(" — " + ("How on-topic the retrieved passages are (0–1)" if simple else "Mean cosine sim between query embedding and chunk embeddings (0–1)"))]),
-                html.Div([html.Span("Faithfulness", style={"fontWeight": "800", "color": "var(--ok)"}), html.Span(" — " + ("How much of the answer is supported by the papers (0–1). 1.0 = nothing made up." if simple else "Token overlap precision: answer tokens found in context / total answer tokens"))]),
-                html.Div([html.Span("Diversity", style={"fontWeight": "800", "color": "var(--wn)"}), html.Span(" — " + ("How varied the retrieved passages are. Higher = less repetition." if simple else "1 − mean pairwise cosine similarity across retrieved chunks"))]),
-            ], style={"display": "flex", "flexDirection": "column", "gap": "8px", "fontSize": "13px", "color": "var(--mt)", "lineHeight": "1.55"}),
-        ], className="card info-box blue", style={"borderRadius": "var(--r)"}),
+                # search hero
+                html.Div([
+                    html.Div("🔬 research-rag-bench", className="sh-logo"),
+                    # step bar
+                    html.Div(id="steps-slot"),
+                    # search box
+                    html.Div([
+                        dcc.Input(id="q-input", type="text", debounce=False,
+                                  placeholder="Ask anything about your papers…",
+                                  className="search-box", n_submit=0),
+                        html.Button("Ask →", id="q-btn", className="search-enter-btn", n_clicks=0),
+                    ], className="search-box-wrap"),
+                    html.Div("Press Enter or click Ask →", className="search-hint"),
 
-        dcc.Loading(html.Div(id="query-output"), type="dot", color="var(--pr)"),
-    ], className="page")
+                    # example grid
+                    html.Div([
+                        html.Div("✨ Or try an example — papers load automatically", className="ex-label"),
+                        html.Div(ex_btns, className="ex-grid"),
+                    ], className="ex-wrap"),
 
+                    # expert controls (hidden in simple mode)
+                    html.Div([
+                        html.Div([
+                            html.Div([html.Span("Search method"), html.Span("ⓘ",className="tip-i",[html.Div("How the app finds relevant passages. Hybrid is recommended.",className="tip-box")])], className="ctrl-lbl"),
+                            html.Div(method_cards, className="meth-row"),
+                            dcc.RadioItems(id="q-method", value="hybrid",
+                                           options=[{"label":k,"value":k} for k in ["bm25","vector","hybrid"]],
+                                           style={"display":"none"}),
+                        ], className="ctrl-card"),
+                        html.Div([
+                            html.Div([html.Span("Results"), html.Span("ⓘ",className="tip-i",[html.Div("How many passages to retrieve before writing the answer.",className="tip-box")])], className="ctrl-lbl"),
+                            dcc.Slider(id="q-k", min=1, max=10, step=1, value=5,
+                                       marks={i:str(i) for i in [1,3,5,7,10]},
+                                       tooltip={"placement":"bottom"}),
+                            html.Div(style={"height":"8px"}),
+                            html.Div([html.Span("Generator"), html.Span("ⓘ",className="tip-i",[html.Div("The model that writes the answer. Larger = better quality, slower on CPU.",className="tip-box")])], className="ctrl-lbl"),
+                            dcc.Dropdown(id="q-model", options=gen_opts, value=DEFAULT_MODEL,
+                                         clearable=False, style={"fontSize":"13px"}),
+                            html.Div(id="model-tip"),
+                        ], className="ctrl-card"),
+                    ], className="expert-panel", id="expert-panel"),
 
-def _load_tab():
-    return html.Div([
-        html.Div([
-            html.Div(["📥 ", html.Span("Load papers from arXiv")], className="card-title"),
-            html.P("Search for any topic and we'll fetch real papers from arXiv to build your knowledge base. You can also click any example card on the Ask tab — it loads papers automatically.",
-                   style={"fontSize": "13px", "color": "var(--mt)", "marginBottom": "14px", "lineHeight": "1.6"}),
-            _label("Search topic", "E.g. 'survey large language models' or 'retrieval augmented generation'"),
-            dcc.Input(id="arxiv-query", type="text",
-                      placeholder="e.g. survey large language models transformer",
-                      className="inp"),
+                ], className="search-hero", id="search-hero"),
+
+                # answer area (initially hidden)
+                dcc.Loading(html.Div(id="answer-area"), type="dot", color="var(--pr)"),
+
+            ], id="tab-content-ask", style={"display":"flex","flexDirection":"column","alignItems":"center"}),
+
+            # ── LOAD TAB ────────────────────────────────────────────────────
             html.Div([
                 html.Div([
-                    _label("Number of papers", "How many papers to fetch. 5–8 is a good start."),
-                    dcc.Slider(id="n-papers", min=1, max=10, step=1, value=5,
-                               marks={i: str(i) for i in range(1, 11)},
-                               tooltip={"placement": "bottom"}),
-                ], style={"flex": "1"}),
+                    html.Div("Load papers from arXiv", className="card-h"),
+                    html.P("Search any topic — we fetch real papers and build your knowledge base. Example cards on the Ask tab do this automatically.",style={"fontSize":"13px","color":"var(--mt)","marginBottom":"12px","lineHeight":"1.6"}),
+                    html.Label("Search topic", className="fl"),
+                    dcc.Input(id="ingest-q", type="text", placeholder="e.g. survey large language models transformer", className="inp"),
+                    html.Div([
+                        html.Div([
+                            html.Label("Number of papers", className="fl", style={"marginTop":"12px"}),
+                            dcc.Slider(id="n-papers", min=1, max=10, step=1, value=5,
+                                       marks={i:str(i) for i in range(1,11)},
+                                       tooltip={"placement":"bottom"}),
+                        ], style={"flex":"1"}),
+                        html.Div([
+                            html.Label("Text splitting", className="fl", style={"marginTop":"12px"}),
+                            dcc.Dropdown(id="chunk-strat",
+                                         options=[{"label":"Sentence Window (recommended)","value":"sentence_window"},
+                                                  {"label":"Fixed-size + overlap","value":"fixed"},
+                                                  {"label":"Semantic — paragraph-aware","value":"semantic"}],
+                                         value="sentence_window", clearable=False, style={"fontSize":"13px"}),
+                        ], style={"flex":"1","marginLeft":"20px"}),
+                    ], style={"display":"flex","alignItems":"flex-end","marginTop":"4px"}),
+                    html.Div([
+                        html.Button("🔍  Fetch & Index", id="fetch-btn", className="btn btn-p"),
+                        html.Button("🗑️  Clear all",     id="clear-btn", className="btn btn-d"),
+                    ], className="btn-row"),
+                    dcc.Loading(html.Div(id="ingest-status"), type="circle", color="var(--pr)"),
+                ], className="card"),
                 html.Div([
-                    _label("Text splitting method", "How papers are split into pieces for indexing. Sentence Window is recommended."),
-                    dcc.Dropdown(id="chunk-strategy",
-                                 options=[{"label": "Sentence Window (recommended)", "value": "sentence_window"},
-                                          {"label": "Fixed-size + overlap", "value": "fixed"},
-                                          {"label": "Semantic — paragraph-aware", "value": "semantic"}],
-                                 value="sentence_window", clearable=False, style={"fontSize": "13px"}),
-                ], style={"flex": "1", "marginLeft": "24px"}),
-            ], style={"display": "flex", "alignItems": "flex-end", "marginTop": "14px", "gap": "8px"}),
+                    html.Div("Indexed papers", className="card-h"),
+                    html.Div(id="papers-table"),
+                ], className="card"),
+            ], id="tab-content-load",
+               style={"maxWidth":"820px","margin":"0 auto","padding":"24px","display":"none"}),
+
+            # ── COMPARE TAB ─────────────────────────────────────────────────
             html.Div([
-                html.Button("🔍  Fetch & Index", id="fetch-btn", className="btn btn-pr"),
-                html.Button("🗑️  Clear All", id="clear-btn", className="btn btn-danger"),
-            ], className="btn-row"),
-            dcc.Loading(html.Div(id="ingest-status"), type="circle", color="var(--pr)"),
-        ], className="card"),
-        html.Div([
-            html.Div(["📄 ", html.Span("Indexed papers")], className="card-title"),
-            html.Div(id="papers-table"),
-        ], className="card"),
-    ], className="page")
+                html.Div([
+                    html.Div("Compare all three search methods", className="card-h"),
+                    html.P("Run the same question through BM25, Dense Vector, and Hybrid search simultaneously — see which retrieves the most relevant passages.",style={"fontSize":"13px","color":"var(--mt)","marginBottom":"12px","lineHeight":"1.6"}),
+                    html.Label("Your question", className="fl"),
+                    dcc.Input(id="cmp-q", type="text", placeholder="How does attention work in transformers?", className="inp"),
+                    html.Div([html.Label("Results per method",className="fl",style={"marginTop":"12px"}), dcc.Slider(id="cmp-k",min=1,max=8,step=1,value=4,marks={i:str(i) for i in range(1,9)},tooltip={"placement":"bottom"})]),
+                    html.Div([html.Button("⚖️  Run Comparison",id="cmp-btn",className="btn btn-p")], className="btn-row"),
+                ], className="card"),
+                dcc.Loading(html.Div(id="cmp-out"), type="dot", color="var(--pr)"),
+            ], id="tab-content-compare",
+               style={"maxWidth":"1100px","margin":"0 auto","padding":"24px","display":"none"}),
 
-
-def _compare_tab():
-    return html.Div([
-        html.Div([
-            html.Div(["⚖️ ", html.Span("Compare all three search methods")], className="card-title"),
-            html.P("Enter a question to see how BM25, Dense Vector, and Hybrid search each respond — with charts showing which method retrieved the most relevant passages.",
-                   style={"fontSize": "13px", "color": "var(--mt)", "marginBottom": "14px", "lineHeight": "1.6"}),
-            _label("Your question"),
-            dcc.Input(id="compare-input", type="text",
-                      placeholder="How does attention work in transformers?", className="inp"),
+            # ── EVALUATE TAB ────────────────────────────────────────────────
             html.Div([
-                _label("Results per method", "Number of passages to retrieve for each method."),
-                dcc.Slider(id="compare-k", min=1, max=8, step=1, value=4,
-                           marks={i: str(i) for i in range(1, 9)},
-                           tooltip={"placement": "bottom"}),
-            ], style={"marginTop": "14px"}),
-            html.Div([html.Button("⚖️  Run Comparison", id="compare-btn", className="btn btn-pr")], className="btn-row"),
-        ], className="card"),
-        dcc.Loading(html.Div(id="compare-output"), type="dot", color="var(--pr)"),
-    ], className="page-wide")
+                html.Div([
+                    html.Div("Batch evaluation", className="card-h"),
+                    html.P("Enter up to 10 questions (one per line) to benchmark all three retrieval methods at once.",style={"fontSize":"13px","color":"var(--mt)","marginBottom":"12px","lineHeight":"1.6"}),
+                    html.Label("Test questions — one per line", className="fl"),
+                    dcc.Textarea(id="eval-qs", className="inp inp-area",
+                                 placeholder="What is attention?\nHow does BERT differ from GPT?\nExplain gradient descent"),
+                    html.Div([html.Label("Results per question",className="fl",style={"marginTop":"12px"}), dcc.Slider(id="eval-k",min=1,max=8,step=1,value=5,marks={i:str(i) for i in range(1,9)},tooltip={"placement":"bottom"})]),
+                    html.Div([html.Button("📊  Run Evaluation",id="eval-btn",className="btn btn-p")], className="btn-row"),
+                ], className="card"),
+                dcc.Loading(html.Div(id="eval-out"), type="circle", color="var(--pr)"),
+            ], id="tab-content-evaluate",
+               style={"maxWidth":"820px","margin":"0 auto","padding":"24px","display":"none"}),
 
+        ], id="screen-app", style={"display":"none"}),
 
-def _evaluate_tab():
-    return html.Div([
-        html.Div([
-            html.Div(["📊 ", html.Span("Batch evaluation")], className="card-title"),
-            html.P("Enter up to 10 questions (one per line). The system measures how well each retrieval method performs across all of them and displays the results as charts.",
-                   style={"fontSize": "13px", "color": "var(--mt)", "marginBottom": "14px", "lineHeight": "1.6"}),
-            _label("Test questions — one per line"),
-            dcc.Textarea(id="eval-queries", className="inp inp-area",
-                         placeholder="What is attention?\nHow does BERT differ from GPT?\nExplain gradient descent\nWhat is contrastive learning?"),
-            html.Div([
-                _label("Results per question"),
-                dcc.Slider(id="eval-k", min=1, max=8, step=1, value=5,
-                           marks={i: str(i) for i in range(1, 9)},
-                           tooltip={"placement": "bottom"}),
-            ], style={"marginTop": "14px"}),
-            html.Div([html.Button("📊  Run Batch Evaluation", id="eval-btn", className="btn btn-pr")], className="btn-row"),
-        ], className="card"),
-        dcc.Loading(html.Div(id="eval-output"), type="circle", color="var(--pr)"),
-    ], className="page")
-
+        # modal — always in DOM, empty when not in use
+        html.Div(id="modal-slot"),
+    ])
 
 # ─────────────────────────────────────────────────────────────────────────────
 # APP FACTORY
 # ─────────────────────────────────────────────────────────────────────────────
-
 def create_dash_app(server):
     app = dash.Dash(__name__, server=server, url_base_pathname="/",
                     suppress_callback_exceptions=True,
-                    meta_tags=[{"name": "viewport", "content": "width=device-width,initial-scale=1"}])
+                    meta_tags=[{"name":"viewport","content":"width=device-width,initial-scale=1"}])
     app.index_string = _INDEX
+    app.layout = _full_layout()
 
-    app.layout = html.Div([
-        dcc.Store(id="theme-store",  data="dark",    storage_type="session"),
-        dcc.Store(id="mode-store",   data="landing", storage_type="session"),
-        dcc.Store(id="tab-store",    data="ask",     storage_type="session"),
-        dcc.Store(id="step-store",   data=0,         storage_type="session"),
-        dcc.Store(id="method-store", data="hybrid"),
-        dcc.Interval(id="stats-tick", interval=7000, n_intervals=0),
-        html.Div(id="root"),
-    ])
-
-    # ── theme toggle (clientside) ──────────────────────────────────────────
+    # ── theme ──────────────────────────────────────────────────────────────
     app.clientside_callback(
         """function(n, cur){
-            var nxt = cur==='dark'?'light':'dark';
-            document.documentElement.setAttribute('data-theme', nxt);
+            var nxt=cur==='dark'?'light':'dark';
+            document.documentElement.setAttribute('data-theme',nxt);
             return [nxt, nxt==='dark'?'🌙':'☀️'];
         }""",
-        [Output("theme-store", "data"), Output("theme-toggle", "children")],
-        Input("theme-toggle", "n_clicks"), State("theme-store", "data"),
+        [Output("s-theme","data"), Output("btn-theme","children")],
+        Input("btn-theme","n_clicks"), State("s-theme","data"),
         prevent_initial_call=True)
 
-    # ── root renderer — switches between landing and app shell ────────────
+    # ── show/hide landing vs app ────────────────────────────────────────────
     @app.callback(
-        Output("root", "children"),
-        Input("mode-store", "data"), Input("tab-store", "data"), Input("step-store", "data"))
-    def render_root(mode, tab, step):
+        Output("screen-landing","style"), Output("screen-app","style"),
+        Input("s-mode","data"))
+    def toggle_screens(mode):
         if mode == "landing":
-            return _landing()
-        tab = tab or "ask"
-        inner_map = {
-            "ask":      lambda: _ask_tab(mode, step or 0),
-            "load":     _load_tab,
-            "compare":  _compare_tab,
-            "evaluate": _evaluate_tab,
-        }
-        inner = inner_map.get(tab, lambda: _ask_tab(mode, step or 0))()
-        return _app_shell(mode, tab, inner)
+            return {"display":"block"}, {"display":"none"}
+        return {"display":"none"}, {"display":"block"}
 
-    # ── mode selection from landing ────────────────────────────────────────
+    # ── mode selection ─────────────────────────────────────────────────────
     @app.callback(
-        Output("mode-store", "data"),
-        Input("pick-simple", "n_clicks"), Input("pick-expert", "n_clicks"),
-        Input("switch-mode-btn", "n_clicks"),
-        State("mode-store", "data"),
-        prevent_initial_call=True)
-    def pick_mode(ns, ne, nsw, current):
-        tid = ctx.triggered_id
-        if tid == "pick-simple":  return "simple"
-        if tid == "pick-expert":  return "expert"
-        if tid == "switch-mode-btn":
-            return "expert" if current == "simple" else "simple"
-        return current
+        Output("s-mode","data"),
+        Input("pick-s","n_clicks"), Input("pick-e","n_clicks"), Input("sw-mode","n_clicks"),
+        State("s-mode","data"), prevent_initial_call=True)
+    def set_mode(ns, ne, nsw, cur):
+        t = ctx.triggered_id
+        if t == "pick-s": return "simple"
+        if t == "pick-e": return "expert"
+        if t == "sw-mode": return "expert" if cur=="simple" else "simple"
+        return cur
 
-    # ── tab switching ──────────────────────────────────────────────────────
+    # ── expert panel visibility (show/hide, not add/remove) ─────────────────
     @app.callback(
-        Output("tab-store", "data"),
-        [Input(f"tab-{t}", "n_clicks") for t in ["ask", "load", "compare", "evaluate"]],
-        prevent_initial_call=True)
-    def switch_tab(*_):
-        tid = ctx.triggered_id
-        return tid.replace("tab-", "") if tid else "ask"
+        Output("expert-panel","style"),
+        Input("s-mode","data"))
+    def toggle_expert_panel(mode):
+        hidden = {"display":"none"}
+        visible = {"display":"grid","gridTemplateColumns":"1fr 1fr","gap":"12px","marginBottom":"12px","width":"100%","maxWidth":"760px"}
+        return hidden if mode == "simple" else visible
 
-    # ── header stats refresh ───────────────────────────────────────────────
-    @app.callback(Output("header-stats", "children"), Input("stats-tick", "n_intervals"))
-    def refresh_stats(_):
+    # ── search hero compacts when answer is present ─────────────────────────
+    @app.callback(
+        Output("search-hero","className"),
+        Input("s-step","data"))
+    def hero_class(step):
+        return "search-hero compact" if (step or 0) >= 2 else "search-hero"
+
+    # ── step bar ───────────────────────────────────────────────────────────
+    @app.callback(Output("steps-slot","children"), Input("s-step","data"))
+    def update_steps(step):
+        return _steps_bar(step or 0)
+
+    # ── header stats ───────────────────────────────────────────────────────
+    @app.callback(Output("stats-txt","children"), Input("iv-stats","n_intervals"))
+    def stats_tick(_):
         from app.store import store
         s = store.stats()
         return f"📄 {s['n_documents']} papers · ✂️ {s['n_chunks']} chunks · {'✅ ready' if s['has_faiss'] else '⚪ not indexed'}"
 
-    # ── model tip ──────────────────────────────────────────────────────────
-    @app.callback(Output("model-tip-out", "children"), Input("query-model", "value"), prevent_initial_call=False)
-    def model_tip(mid):
-        from app.models.generator import DEFAULT_MODEL
-        return _model_tip_div(mid or DEFAULT_MODEL)
-
-    # ── method card clicks → update hidden radio + card highlight ──────────
+    # ── tab switching (show/hide divs, not re-render) ───────────────────────
     @app.callback(
-        Output("query-method", "value"),
-        Output("meth-bm25",   "className"),
-        Output("meth-vector", "className"),
-        Output("meth-hybrid", "className"),
-        Input("meth-bm25",   "n_clicks"),
-        Input("meth-vector", "n_clicks"),
-        Input("meth-hybrid", "n_clicks"),
+        Output("tab-content-ask","style"),
+        Output("tab-content-load","style"),
+        Output("tab-content-compare","style"),
+        Output("tab-content-evaluate","style"),
+        Output("tab-ask","className"),
+        Output("tab-load","className"),
+        Output("tab-compare","className"),
+        Output("tab-evaluate","className"),
+        Output("s-tab","data"),
+        Input("tab-ask","n_clicks"), Input("tab-load","n_clicks"),
+        Input("tab-compare","n_clicks"), Input("tab-evaluate","n_clicks"),
+        prevent_initial_call=True)
+    def switch_tab(*_):
+        t = (ctx.triggered_id or "tab-ask").replace("tab-","")
+        base_ask = {"display":"flex","flexDirection":"column","alignItems":"center"}
+        base_page = {"maxWidth":"820px","margin":"0 auto","padding":"24px"}
+        base_wide = {"maxWidth":"1100px","margin":"0 auto","padding":"24px"}
+        styles = {
+            "ask":      {**base_ask},
+            "load":     {**base_page},
+            "compare":  {**base_wide},
+            "evaluate": {**base_page},
+        }
+        for k in styles:
+            if k != t: styles[k]["display"] = "none"
+        tabs = ["ask","load","compare","evaluate"]
+        classes = ["tb on" if k==t else "tb" for k in tabs]
+        return (*[styles[k] for k in tabs], *classes, t)
+
+    # ── method card clicks → update hidden RadioItems ───────────────────────
+    @app.callback(
+        Output("q-method","value"),
+        Output("mc-bm25","className"),
+        Output("mc-vector","className"),
+        Output("mc-hybrid","className"),
+        Input("mc-bm25","n_clicks"),
+        Input("mc-vector","n_clicks"),
+        Input("mc-hybrid","n_clicks"),
         prevent_initial_call=True)
     def pick_method(b, v, h):
-        sel = ctx.triggered_id.replace("meth-", "") if ctx.triggered_id else "hybrid"
-        return sel, *["meth-card sel" if m == sel else "meth-card" for m in ["bm25", "vector", "hybrid"]]
+        sel = (ctx.triggered_id or "mc-hybrid").replace("mc-","")
+        return sel, *["mc on" if m==sel else "mc" for m in ["bm25","vector","hybrid"]]
 
-    # ── example card clicked → show modal ────────────────────────────────
+    # ── model tip ──────────────────────────────────────────────────────────
+    @app.callback(Output("model-tip","children"), Input("q-model","value"), prevent_initial_call=False)
+    def model_tip(mid):
+        from app.models.generator import DEFAULT_MODEL
+        return _model_tip_el(mid or DEFAULT_MODEL)
+
+    # ── example card → modal ────────────────────────────────────────────────
     @app.callback(
-        Output("modal-slot", "children"),
-        Output("pending-ex", "data"),
-        Input({"type": "ex-btn", "index": ALL}, "n_clicks"),
+        Output("modal-slot","children"), Output("s-pex","data"),
+        Input({"type":"exbtn","index":ALL},"n_clicks"),
         prevent_initial_call=True)
     def open_modal(clicks):
-        if not any(c and c > 0 for c in clicks):
+        if not any(c and c>0 for c in clicks):
             return dash.no_update, dash.no_update
-        idx = next(i for i, c in enumerate(clicks) if c and c > 0)
+        idx = next(i for i,c in enumerate(clicks) if c and c>0)
         e = EXAMPLES[idx]
-        return html.Div([
+        return html.Div([html.Div([
+            html.Div(e["icon"], className="m-icon"),
+            html.Div("Load this example?", className="m-title"),
+            html.Div(["We'll fetch relevant papers from arXiv (about 15 s), then pre-fill the question for you. Just click Ask → when ready."], className="m-body"),
+            html.Div(f'"{e["q"]}"', className="m-q"),
             html.Div([
-                html.Div(e["icon"], className="modal-icon"),
-                html.Div("Ready to explore this question?", className="modal-title"),
-                html.Div([
-                    "We'll fetch relevant papers from arXiv (~10–20 s), then load the question for you.",
-                    html.Br(), html.Br(),
-                    html.Span("No typing needed — just click and explore.", style={"color": "var(--ok)", "fontWeight": "600"}),
-                ], className="modal-body"),
-                html.Div(f'"{e["question"]}"', className="modal-q"),
-                html.Div([
-                    html.Button("📥 Yes, fetch papers & ask", id="modal-yes", n_clicks=0, className="btn btn-pr", style={"flex": "1", "justifyContent": "center"}),
-                    html.Button("✏️ I'll type my own",          id="modal-no",  n_clicks=0, className="btn btn-ghost", style={"flex": "1", "justifyContent": "center"}),
-                ], className="modal-actions"),
-            ], className="modal"),
-        ], className="modal-wrap"), idx
+                html.Button("📥 Yes, load papers",     id="modal-yes", n_clicks=0, className="btn btn-p",  style={"flex":"1","justifyContent":"center"}),
+                html.Button("✏️ I'll type my own", id="modal-no",  n_clicks=0, className="btn btn-g", style={"flex":"1","justifyContent":"center"}),
+            ], className="m-btns"),
+        ], className="modal")], className="modal-bg"), idx
 
-    # ── modal yes — fetch + populate ──────────────────────────────────────
+    # ── modal yes → fetch + populate ───────────────────────────────────────
     @app.callback(
-        Output("ingest-status",  "children", allow_duplicate=True),
-        Output("papers-table",   "children", allow_duplicate=True),
-        Output("query-input",    "value"),
-        Output("modal-slot",     "children", allow_duplicate=True),
-        Output("step-store",     "data",     allow_duplicate=True),
-        Output("tab-store",      "data",     allow_duplicate=True),
-        Input("modal-yes", "n_clicks"),
-        State("pending-ex", "data"),
+        Output("ingest-status","children",allow_duplicate=True),
+        Output("papers-table","children",allow_duplicate=True),
+        Output("q-input","value"),
+        Output("modal-slot","children",allow_duplicate=True),
+        Output("s-step","data",allow_duplicate=True),
+        Output("s-tab","data",allow_duplicate=True),
+        Output("tab-content-ask","style",allow_duplicate=True),
+        Output("tab-content-load","style",allow_duplicate=True),
+        Output("tab-ask","className",allow_duplicate=True),
+        Output("tab-load","className",allow_duplicate=True),
+        Input("modal-yes","n_clicks"),
+        State("s-pex","data"),
         prevent_initial_call=True)
     def load_example(n, idx):
-        if not n or idx is None:
-            return [dash.no_update] * 6
+        empty = [dash.no_update]*10
+        if not n or idx is None: return empty
         from app.store import store
         from app.utils.arxiv_loader import fetch_arxiv_papers
         from app.utils.chunker import chunk_text
@@ -885,106 +732,59 @@ def create_dash_app(server):
         from app.models.retriever import build_faiss_index, build_bm25_index
         e = EXAMPLES[idx]
         try:
-            papers = fetch_arxiv_papers(e["query"], max_results=6)
+            papers = fetch_arxiv_papers(e["arxiv"], max_results=6)
             new_chunks = []
             for p in papers:
-                if any(d["id"] == p["id"] for d in store.documents):
-                    continue
+                if any(d["id"]==p["id"] for d in store.documents): continue
                 store.add_document(p)
-                for i, ct in enumerate(chunk_text(f"{p['title']}.\n\n{p['abstract']}", "sentence_window")):
-                    new_chunks.append({"id": f"{p['id']}_chunk_{i}", "doc_id": p["id"],
-                                       "title": p["title"], "text": ct, "chunk_idx": i, "source": p["url"]})
+                for i,ct in enumerate(chunk_text(f"{p['title']}.\n\n{p['abstract']}","sentence_window")):
+                    new_chunks.append({"id":f"{p['id']}_chunk_{i}","doc_id":p["id"],"title":p["title"],"text":ct,"chunk_idx":i,"source":p["url"]})
             store.add_chunks(new_chunks)
             if store.chunk_texts:
                 embs = embed_texts(store.chunk_texts)
-                store.set_embeddings(embs)
-                store.faiss_index = build_faiss_index(embs)
-                store.bm25_index  = build_bm25_index(store.chunk_texts)
+                store.set_embeddings(embs); store.faiss_index=build_faiss_index(embs); store.bm25_index=build_bm25_index(store.chunk_texts)
             store.save()
             s = store.stats()
-            status = html.Span(f"✅ Loaded {len(papers)} papers → {len(new_chunks)} new chunks. Total: {s['n_documents']} docs, {s['n_chunks']} chunks.",
-                               style={"color": "var(--ok)", "fontSize": "13px"})
-            return status, _papers_table(store.documents), e["question"], html.Div(), 1, "ask"
+            st = html.Span(f"✅ Loaded {len(papers)} papers → {len(new_chunks)} new chunks. Total: {s['n_documents']} docs, {s['n_chunks']} chunks.", className="ok")
+            ask_style = {"display":"flex","flexDirection":"column","alignItems":"center"}
+            load_style = {"maxWidth":"820px","margin":"0 auto","padding":"24px","display":"none"}
+            return st, _papers_table(store.documents), e["q"], html.Div(), 1, "ask", ask_style, load_style, "tb on", "tb"
         except Exception as exc:
-            return html.Span(f"❌ {exc}", style={"color": "var(--er)", "fontSize": "13px"}), dash.no_update, dash.no_update, html.Div(), dash.no_update, dash.no_update
+            return html.Span(f"❌ {exc}", className="er"), *([dash.no_update]*9)
 
     # ── modal no ───────────────────────────────────────────────────────────
-    @app.callback(Output("modal-slot", "children", allow_duplicate=True),
-                  Input("modal-no", "n_clicks"), prevent_initial_call=True)
-    def close_modal(_):
-        return html.Div()
+    @app.callback(Output("modal-slot","children",allow_duplicate=True),
+                  Input("modal-no","n_clicks"), prevent_initial_call=True)
+    def close_modal(_): return html.Div()
 
-    # ── manual ingest ──────────────────────────────────────────────────────
+    # ── MAIN QUERY (Enter key or button) ────────────────────────────────────
     @app.callback(
-        Output("ingest-status", "children"),
-        Output("papers-table",  "children"),
-        Input("fetch-btn",  "n_clicks"),
-        Input("clear-btn",  "n_clicks"),
-        State("arxiv-query",    "value"),
-        State("n-papers",       "value"),
-        State("chunk-strategy", "value"),
+        Output("answer-area","children"),
+        Output("s-step","data",allow_duplicate=True),
+        Input("q-btn","n_clicks"),
+        Input("q-input","n_submit"),
+        State("q-input","value"),
+        State("q-method","value"),
+        State("q-k","value"),
+        State("q-model","value"),
+        State("s-mode","data"),
         prevent_initial_call=True)
-    def handle_ingest(_f, _c, query, n_papers, strategy):
-        from app.store import store
-        from app.utils.arxiv_loader import fetch_arxiv_papers
-        from app.utils.chunker import chunk_text
-        from app.models.embedder import embed_texts
-        from app.models.retriever import build_faiss_index, build_bm25_index
-        if ctx.triggered_id == "clear-btn":
-            store.clear()
-            return html.Span("✅ Index cleared.", style={"color": "var(--ok)", "fontSize": "13px"}), html.Div()
-        if not query or not query.strip():
-            return html.Span("⚠️ Please enter a search topic.", style={"color": "var(--wn)", "fontSize": "13px"}), dash.no_update
-        try:
-            papers = fetch_arxiv_papers(query.strip(), max_results=n_papers or 5)
-            if not papers:
-                return html.Span("❌ No papers found — try a different topic.", style={"color": "var(--er)", "fontSize": "13px"}), dash.no_update
-            new_chunks = []
-            for p in papers:
-                if any(d["id"] == p["id"] for d in store.documents):
-                    continue
-                store.add_document(p)
-                for i, ct in enumerate(chunk_text(f"{p['title']}.\n\n{p['abstract']}", strategy or "sentence_window")):
-                    new_chunks.append({"id": f"{p['id']}_chunk_{i}", "doc_id": p["id"],
-                                       "title": p["title"], "text": ct, "chunk_idx": i, "source": p["url"]})
-            store.add_chunks(new_chunks)
-            if store.chunk_texts:
-                embs = embed_texts(store.chunk_texts)
-                store.set_embeddings(embs)
-                store.faiss_index = build_faiss_index(embs)
-                store.bm25_index  = build_bm25_index(store.chunk_texts)
-            store.save()
-            s = store.stats()
-            return (html.Span(f"✅ {len(papers)} paper(s) → {len(new_chunks)} new chunks. Total: {s['n_documents']} docs, {s['n_chunks']} chunks.",
-                              style={"color": "var(--ok)", "fontSize": "13px"}),
-                    _papers_table(store.documents))
-        except Exception as exc:
-            return html.Span(f"❌ {exc}", style={"color": "var(--er)", "fontSize": "13px"}), dash.no_update
-
-    # ── query ──────────────────────────────────────────────────────────────
-    @app.callback(
-        Output("query-output", "children"),
-        Output("step-store", "data", allow_duplicate=True),
-        Input("query-btn", "n_clicks"),
-        State("query-input",  "value"),
-        State("query-method", "value"),
-        State("query-k",      "value"),
-        State("query-model",  "value"),
-        State("mode-store",   "data"),
-        prevent_initial_call=True)
-    def handle_query(_, question, method, k, model_id, mode):
+    def handle_query(_, ns, question, method, k, model_id, mode):
         from app.store import store
         from app.models.generator import generate_answer, MODEL_OPTIONS, DEFAULT_MODEL
         from app.models.retriever import retrieve_top_k
         from app.utils.metrics import evaluate_retrieval, answer_faithfulness
         if not question or not question.strip():
-            return html.Span("⚠️ Please enter a question.", style={"color": "var(--wn)", "fontSize": "13px"}), dash.no_update
+            return html.Span("⚠️ Please enter a question.", className="wn"), dash.no_update
         if not store.is_indexed:
             return html.Div([
-                html.Span("⚠️ No papers loaded yet. ", style={"color": "var(--wn)", "fontSize": "13px", "fontWeight": "700"}),
-                html.Span("Click an example card above or go to the Load tab to fetch papers first.", style={"color": "var(--mt)", "fontSize": "13px"}),
+                html.Span("⚠️ No papers loaded. ", className="wn", style={"fontWeight":"700"}),
+                html.Span("Click an example card above, or go to the Load tab.", style={"color":"var(--mt)","fontSize":"13px"}),
             ]), dash.no_update
         mid = model_id or DEFAULT_MODEL
+        # simple mode always uses hybrid k=5
+        if mode == "simple":
+            method, k = "hybrid", 5
         results = retrieve_top_k(question, method or "hybrid", store.faiss_index, store.bm25_index, store.chunks, k=k or 5)
         context = "\n\n".join(r["chunk"]["text"] for r in results)
         answer  = generate_answer(question, context, model_id=mid)
@@ -992,101 +792,129 @@ def create_dash_app(server):
         mt["faithfulness"] = answer_faithfulness(answer, context)
         mlabel = MODEL_OPTIONS.get(mid, {}).get("label", mid)
         simple = mode == "simple"
+        mth_label = METHODS.get(method or "hybrid", METHODS["hybrid"])["label"]
         return html.Div([
+            # answer
             html.Div([
-                html.Div("Answer", className="answer-label"),
-                html.P(answer, className="answer-text"),
-                html.Div(f"Generated by {mlabel}", className="answer-by"),
-            ], className="answer-card"),
+                html.Div("Answer", className="a-lbl"),
+                html.P(answer, className="a-text"),
+                html.Div(f"Generated by {mlabel}", className="a-by"),
+            ], className="a-card"),
+            # metrics
             html.Div([
-                _metric_pill("Relevance",    mt["context_relevance"],       "var(--pr)"),
-                _metric_pill("Faithfulness", round(mt["faithfulness"], 3),  "var(--ok)"),
-                _metric_pill("Diversity",    mt["diversity"],               "var(--wn)"),
-                _metric_pill("Chunks",       mt["n_retrieved"],             "var(--mt)", show_bar=False),
+                _metric("Relevance",   mt["context_relevance"],      "var(--pr)"),
+                _metric("Faithfulness",round(mt["faithfulness"],3),  "var(--ok)"),
+                _metric("Diversity",   mt["diversity"],              "var(--wn)"),
+                _metric("Chunks",      mt["n_retrieved"],            "var(--mt)"),
             ], className="metrics-row"),
+            # what scores mean (simple only)
+            (html.Div([
+                html.Span("📐 What do the scores mean? ",style={"fontWeight":"700","fontSize":"12px","color":"var(--tx)"}),
+                html.Span("Relevance = how on-topic the passages are. Faithfulness = how much the answer is backed by the papers (1.0 = nothing made up). Diversity = how varied the passages are.",style={"fontSize":"12px","color":"var(--mt)"}),
+            ], style={"background":"var(--pr-bg)","border":"1px solid var(--pr-bd)","borderRadius":"8px","padding":"10px 14px","marginBottom":"14px","lineHeight":"1.6"}) if simple else html.Div()),
+            # chunks
             html.Div([
                 html.Div([
-                    html.Span("Retrieved passages", style={"fontWeight": "700", "fontSize": "13px", "color": "var(--tx)"}),
-                    html.Span(f"  ·  {METHODS.get(method or 'hybrid', METHODS['hybrid'])['label']}",
-                              style={"fontSize": "12px", "color": "var(--pr)", "fontWeight": "700"}),
-                ] + ([html.Span("  ·  What is this?",
-                               style={"fontSize": "12px", "color": "var(--mt)", "marginLeft": "6px"})] if simple else []),
-                style={"marginBottom": "12px"}),
-                html.Div([_chunk_card(r) for r in results]),
-            ], className="card"),
-        ]), 2
+                    html.Span("Retrieved passages", style={"fontWeight":"700","fontSize":"13px","color":"var(--tx)"}),
+                    html.Span(f" · {mth_label}", style={"fontSize":"12px","color":"var(--pr)","fontWeight":"700"}),
+                ], className="chunks-hdr"),
+                html.Div([_chunk(r) for r in results]),
+            ], className="chunks-card"),
+        ], className="answer-wrap"), 2
 
-    # ── compare ────────────────────────────────────────────────────────────
+    # ── INGEST ─────────────────────────────────────────────────────────────
     @app.callback(
-        Output("compare-output", "children"),
-        Input("compare-btn", "n_clicks"),
-        State("compare-input", "value"), State("compare-k", "value"), State("theme-store", "data"),
+        Output("ingest-status","children"),
+        Output("papers-table","children"),
+        Input("fetch-btn","n_clicks"), Input("clear-btn","n_clicks"),
+        State("ingest-q","value"), State("n-papers","value"), State("chunk-strat","value"),
         prevent_initial_call=True)
-    def handle_compare(_, question, k, theme):
+    def handle_ingest(_f, _c, query, n, strat):
+        from app.store import store
+        from app.utils.arxiv_loader import fetch_arxiv_papers
+        from app.utils.chunker import chunk_text
+        from app.models.embedder import embed_texts
+        from app.models.retriever import build_faiss_index, build_bm25_index
+        if ctx.triggered_id == "clear-btn":
+            store.clear()
+            return html.Span("✅ Index cleared.", className="ok"), html.Div()
+        if not query or not query.strip():
+            return html.Span("⚠️ Please enter a topic.", className="wn"), dash.no_update
+        try:
+            papers = fetch_arxiv_papers(query.strip(), max_results=n or 5)
+            if not papers: return html.Span("❌ No papers found — try a different topic.", className="er"), dash.no_update
+            new_chunks = []
+            for p in papers:
+                if any(d["id"]==p["id"] for d in store.documents): continue
+                store.add_document(p)
+                for i,ct in enumerate(chunk_text(f"{p['title']}.\n\n{p['abstract']}",strat or "sentence_window")):
+                    new_chunks.append({"id":f"{p['id']}_chunk_{i}","doc_id":p["id"],"title":p["title"],"text":ct,"chunk_idx":i,"source":p["url"]})
+            store.add_chunks(new_chunks)
+            if store.chunk_texts:
+                embs=embed_texts(store.chunk_texts); store.set_embeddings(embs)
+                store.faiss_index=build_faiss_index(embs); store.bm25_index=build_bm25_index(store.chunk_texts)
+            store.save()
+            s=store.stats()
+            return html.Span(f"✅ {len(papers)} paper(s) → {len(new_chunks)} new chunks. Total: {s['n_documents']} docs, {s['n_chunks']} chunks.", className="ok"), _papers_table(store.documents)
+        except Exception as exc:
+            return html.Span(f"❌ {exc}", className="er"), dash.no_update
+
+    # ── COMPARE ────────────────────────────────────────────────────────────
+    @app.callback(
+        Output("cmp-out","children"),
+        Input("cmp-btn","n_clicks"),
+        State("cmp-q","value"), State("cmp-k","value"), State("s-theme","data"),
+        prevent_initial_call=True)
+    def handle_compare(_, q, k, theme):
         from app.store import store
         from app.models.retriever import retrieve_top_k
         from app.utils.metrics import evaluate_retrieval
-        if not question or not question.strip():
-            return html.Span("⚠️ Please enter a question.", style={"color": "var(--wn)", "fontSize": "13px"})
-        if not store.is_indexed:
-            return html.Span("⚠️ No papers indexed.", style={"color": "var(--wn)", "fontSize": "13px"})
+        if not q or not q.strip(): return html.Span("⚠️ Please enter a question.", className="wn")
+        if not store.is_indexed: return html.Span("⚠️ No papers indexed.", className="wn")
         all_r, all_m = {}, {}
-        for m in ["bm25", "vector", "hybrid"]:
-            r = retrieve_top_k(question, m, store.faiss_index, store.bm25_index, store.chunks, k=k or 4)
-            all_r[m] = r; all_m[m] = evaluate_retrieval(question, r)
-        t = theme or "dark"
-        c = _cc(t)
-        cols = [html.Div([
-            html.Div([
-                html.Span("●", style={"color": METHODS[m]["color"], "fontSize": "16px", "marginRight": "6px"}),
-                html.Span(METHODS[m]["label"], style={"fontWeight": "800", "fontSize": "13px"}),
-            ], style={"marginBottom": "8px", "display": "flex", "alignItems": "center"}),
-            html.Div(f"Relevance: {all_m[m]['context_relevance']}  ·  Diversity: {all_m[m]['diversity']}",
-                     style={"fontSize": "12px", "color": "var(--mt)", "marginBottom": "10px"}),
-            html.Div([_chunk_card(r, compact=True) for r in all_r[m]]),
-        ], className="card", style={"flex": "1", "minWidth": "0", "margin": "0 5px"}) for m in ["bm25", "vector", "hybrid"]]
+        for m in ["bm25","vector","hybrid"]:
+            r=retrieve_top_k(q,m,store.faiss_index,store.bm25_index,store.chunks,k=k or 4)
+            all_r[m]=r; all_m[m]=evaluate_retrieval(q,r)
+        t=theme or "dark"
+        cols=[html.Div([
+            html.Div([html.Span("●",style={"color":METHODS[m]["color"],"fontSize":"16px","marginRight":"6px"}),html.Span(METHODS[m]["label"],style={"fontWeight":"800","fontSize":"13px"})],style={"display":"flex","alignItems":"center","marginBottom":"7px"}),
+            html.Div(f"Relevance: {all_m[m]['context_relevance']}  ·  Diversity: {all_m[m]['diversity']}",style={"fontSize":"12px","color":"var(--mt)","marginBottom":"10px"}),
+            html.Div([_chunk(r,compact=True) for r in all_r[m]]),
+        ], className="card", style={"flex":"1","minWidth":"0","margin":"0 4px"}) for m in ["bm25","vector","hybrid"]]
         return html.Div([
-            html.Div([dcc.Graph(figure=_radar(all_m, t), config={"displayModeBar": False})], className="card"),
-            html.Div([dcc.Graph(figure=_bar(all_m, t),   config={"displayModeBar": False})], className="card"),
-            html.Div(cols, style={"display": "flex", "gap": "0", "alignItems": "flex-start"}),
+            html.Div([dcc.Graph(figure=_radar(all_m,t),config={"displayModeBar":False})],className="card"),
+            html.Div([dcc.Graph(figure=_bar(all_m,t),  config={"displayModeBar":False})],className="card"),
+            html.Div(cols,style={"display":"flex","gap":"0"}),
         ])
 
-    # ── evaluate ───────────────────────────────────────────────────────────
+    # ── EVALUATE ───────────────────────────────────────────────────────────
     @app.callback(
-        Output("eval-output", "children"),
-        Input("eval-btn", "n_clicks"),
-        State("eval-queries", "value"), State("eval-k", "value"), State("theme-store", "data"),
+        Output("eval-out","children"),
+        Input("eval-btn","n_clicks"),
+        State("eval-qs","value"), State("eval-k","value"), State("s-theme","data"),
         prevent_initial_call=True)
-    def handle_eval(_, queries_text, k, theme):
+    def handle_eval(_,qs_text,k,theme):
         from app.store import store
         from app.models.retriever import retrieve_top_k
         from app.utils.metrics import evaluate_retrieval
-        if not queries_text or not queries_text.strip():
-            return html.Span("⚠️ Please enter at least one question.", style={"color": "var(--wn)", "fontSize": "13px"})
-        if not store.is_indexed:
-            return html.Span("⚠️ No papers indexed.", style={"color": "var(--wn)", "fontSize": "13px"})
-        qs  = [q.strip() for q in queries_text.strip().split("\n") if q.strip()][:10]
-        agg = {m: {"context_relevance": [], "diversity": []} for m in ["bm25", "vector", "hybrid"]}
+        if not qs_text or not qs_text.strip(): return html.Span("⚠️ Please enter questions.", className="wn")
+        if not store.is_indexed: return html.Span("⚠️ No papers indexed.", className="wn")
+        qs=[q.strip() for q in qs_text.strip().split("\n") if q.strip()][:10]
+        agg={m:{"context_relevance":[],"diversity":[]} for m in ["bm25","vector","hybrid"]}
         for q in qs:
             for m in agg:
-                r  = retrieve_top_k(q, m, store.faiss_index, store.bm25_index, store.chunks, k=k or 5)
-                mt = evaluate_retrieval(q, r)
+                r=retrieve_top_k(q,m,store.faiss_index,store.bm25_index,store.chunks,k=k or 5)
+                mt=evaluate_retrieval(q,r)
                 agg[m]["context_relevance"].append(mt["context_relevance"])
                 agg[m]["diversity"].append(mt["diversity"])
-        avg_rel = {m: round(sum(v["context_relevance"]) / len(v["context_relevance"]), 4) for m, v in agg.items()}
-        avg_div = {m: round(sum(v["diversity"])         / len(v["diversity"]),         4) for m, v in agg.items()}
-        summary = {m: {"context_relevance": avg_rel[m], "diversity": avg_div[m],
-                       "avg_score": round((avg_rel[m] + avg_div[m]) / 2, 4)} for m in ["bm25", "vector", "hybrid"]}
-        t = theme or "dark"
+        avg_r={m:round(sum(v["context_relevance"])/len(v["context_relevance"]),4) for m,v in agg.items()}
+        avg_d={m:round(sum(v["diversity"])/len(v["diversity"]),4) for m,v in agg.items()}
+        summary={m:{"context_relevance":avg_r[m],"diversity":avg_d[m],"avg_score":round((avg_r[m]+avg_d[m])/2,4)} for m in ["bm25","vector","hybrid"]}
+        t=theme or "dark"
         return html.Div([
-            html.Div([dcc.Graph(figure=_radar(summary, t), config={"displayModeBar": False})], className="card"),
-            html.Div([dcc.Graph(figure=_area(qs, agg, t),  config={"displayModeBar": False})], className="card"),
-            html.Div([
-                html.Span(f"✅ Evaluated {len(qs)} question(s) across 3 methods.",
-                          style={"color": "var(--ok)", "fontSize": "13px", "display": "block", "marginBottom": "8px"}),
-                html.P("Hybrid RRF consistently scores highest — it fuses the keyword precision of BM25 with the semantic coverage of dense vector retrieval.",
-                       style={"fontSize": "13px", "color": "var(--mt)", "lineHeight": "1.6"}),
-            ], className="card"),
+            html.Div([dcc.Graph(figure=_radar(summary,t),config={"displayModeBar":False})],className="card"),
+            html.Div([dcc.Graph(figure=_area(qs,agg,t), config={"displayModeBar":False})],className="card"),
+            html.Div([html.Span(f"✅ Evaluated {len(qs)} question(s) across 3 methods.",className="ok",style={"display":"block","marginBottom":"7px"}),html.P("Hybrid RRF consistently scores highest — keyword precision from BM25 combined with semantic coverage from dense retrieval.",style={"fontSize":"13px","color":"var(--mt)","lineHeight":"1.6"})],className="card"),
         ])
 
     return app
