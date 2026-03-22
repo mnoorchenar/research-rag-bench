@@ -5,7 +5,8 @@
       "Bash(python -m py_compile /e/HuggingFace/research-rag-bench/app/dashboards/eval_dashboard.py)",
       "Bash(python -m py_compile /e/HuggingFace/research-rag-bench/app/store.py /e/HuggingFace/research-rag-bench/app/models/generator.py /e/HuggingFace/research-rag-bench/app/routes/query.py)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(python -m py_compile \"E:/HuggingFace/research-rag-bench/app/dashboards/eval_dashboard.py\")"
     ]
   }
 }
