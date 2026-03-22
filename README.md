@@ -60,8 +60,12 @@ sdk: docker
     <td>Search and ingest real research papers in one click; choose from three chunking strategies (fixed, sentence-window, semantic)</td>
   </tr>
   <tr>
-    <td>⚖️ <b>Side-by-Side Comparison</b></td>
-    <td>Run any query across all three methods simultaneously and inspect ranked results and metrics per method</td>
+    <td>⚖️ <b>Unified Ask & Compare</b></td>
+    <td>Every query automatically runs all three methods — answer, metrics, radar/bar charts, and 3-column passage comparison shown on one page</td>
+  </tr>
+  <tr>
+    <td>💡 <b>Domain Quick-Start</b></td>
+    <td>Pre-built topic chips (Data Science, Marketing, Medical) fill the search box in one click; contextual question chips in Ask tab adapt to the loaded domain</td>
   </tr>
   <tr>
     <td>🔒 <b>Secure by Design</b></td>
@@ -144,14 +148,12 @@ docker run -p 7860:7860 mnoorchenar/research-rag-bench
 
 ---
 
-## 📊 Dashboard Modules
+## 📊 Dashboard Tabs
 
-| Module | Description | Status |
-|--------|-------------|--------|
-| 📥 Ingest | Fetch arXiv papers by topic and index with configurable chunking | ✅ Live |
-| 💬 Query | Ask questions and get answers with cited retrieved context | ✅ Live |
-| ⚖️ Compare | BM25 vs Dense Vector vs Hybrid RRF side by side | ✅ Live |
-| 📊 Evaluate | Batch evaluation with aggregate metrics charts across methods | ✅ Live |
+| Tab | Description | Status |
+|-----|-------------|--------|
+| 📥 Load | Fetch arXiv papers by topic — domain chips (Data Science, Marketing, Medical) pre-fill the search box; configure chunking strategy and paper count | ✅ Live |
+| 🔍 Ask & Compare | Ask a question → get an AI-generated answer + metrics (relevance, faithfulness, diversity) + radar/bar charts + 3-column side-by-side passages (BM25 vs Vector vs Hybrid) — all in one page | ✅ Live |
 | 🔌 REST API | Programmatic endpoints: `/api/fetch-arxiv`, `/api/query`, `/api/compare` | ✅ Live |
 | 🧠 Fine-tune | Domain-specific embedding fine-tuning on ingested corpus | 🗓️ Planned |
 

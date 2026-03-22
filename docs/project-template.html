@@ -170,7 +170,7 @@ h1{font-size:clamp(1.7rem,3.5vw,2.7rem);font-weight:900;line-height:1.2;margin-b
 <div class="stats-bar">
   <div class="stats-inner">
     <div class="stat-item"><div class="stat-val">3</div><div class="stat-label">Retrieval methods<br>BM25 · Vector · Hybrid</div></div>
-    <div class="stat-item"><div class="stat-val">6</div><div class="stat-label">Dashboard modules<br>live + planned</div></div>
+    <div class="stat-item"><div class="stat-val">2</div><div class="stat-label">Dashboard tabs<br>Load · Ask & Compare</div></div>
     <div class="stat-item"><div class="stat-val">RRF</div><div class="stat-label">Fusion algorithm<br>k=60 canonical</div></div>
     <div class="stat-item"><div class="stat-val">0.47</div><div class="stat-label">Avg context relevance<br>hybrid vs 0.41 BM25</div></div>
     <div class="stat-item"><div class="stat-val">0KB</div><div class="stat-label">API cost<br>fully open-source</div></div>
@@ -211,31 +211,24 @@ h1{font-size:clamp(1.7rem,3.5vw,2.7rem);font-weight:900;line-height:1.2;margin-b
         <div class="mod-detail"><span class="mod-detail-key">Status</span><span style="font-weight:700">✅ Live</span></div>
       </div>
       <div class="mod-card mod-2">
-        <div class="mod-badge" style="background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.22)">💬 Query</div>
-        <div class="mod-name">Single Query</div>
-        <div class="mod-desc">Ask questions, receive answers with context citation. Choose retrieval method (BM25, dense vector, or hybrid) and swap generator models on the fly.</div>
-        <div class="mod-detail"><span class="mod-detail-key">Methods</span><span style="color:#ef4444;font-weight:700">3 + swappable</span></div>
+        <div class="mod-badge" style="background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.22)">🔍 Ask & Compare</div>
+        <div class="mod-name">Unified Query Page</div>
+        <div class="mod-desc">Ask a question and get everything on one page: AI-generated answer, live metrics (relevance · faithfulness · diversity), radar + bar charts, and 3-column passage comparison across all three methods simultaneously.</div>
+        <div class="mod-detail"><span class="mod-detail-key">Methods run</span><span style="color:#ef4444;font-weight:700">All 3 at once</span></div>
         <div class="mod-detail"><span class="mod-detail-key">Status</span><span style="font-weight:700">✅ Live</span></div>
       </div>
       <div class="mod-card mod-3">
-        <div class="mod-badge" style="background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.22)">⚖️ Compare</div>
-        <div class="mod-name">Method Comparison</div>
-        <div class="mod-desc">Run the same query across all three retrieval methods and inspect results side by side with radar and bar charts for instant visualization.</div>
-        <div class="mod-detail"><span class="mod-detail-key">Visualizations</span><span style="color:#f59e0b;font-weight:700">2 chart types</span></div>
+        <div class="mod-badge" style="background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.22)">💡 Domain Chips</div>
+        <div class="mod-name">Quick-Start Topics</div>
+        <div class="mod-desc">Pre-built topic chips (📊 Data Science · 📣 Marketing · 🏥 Medical) fill the arXiv search box in one click. After loading, the Ask tab surfaces 2 contextual question chips tailored to the selected domain.</div>
+        <div class="mod-detail"><span class="mod-detail-key">Domains</span><span style="color:#f59e0b;font-weight:700">3 built-in</span></div>
         <div class="mod-detail"><span class="mod-detail-key">Status</span><span style="font-weight:700">✅ Live</span></div>
       </div>
       <div class="mod-card mod-4">
-        <div class="mod-badge" style="background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.22)">📊 Evaluate</div>
-        <div class="mod-name">Batch Evaluation</div>
-        <div class="mod-desc">Run 5–10 test queries across all methods, generate radar overview, per-query area chart, and aggregate metrics with confidence bands and comparative analysis.</div>
-        <div class="mod-detail"><span class="mod-detail-key">Queries</span><span style="color:#10b981;font-weight:700">up to 10</span></div>
-        <div class="mod-detail"><span class="mod-detail-key">Status</span><span style="font-weight:700">✅ Live</span></div>
-      </div>
-      <div class="mod-card mod-5">
         <div class="mod-badge" style="background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.22)">🔌 REST API</div>
         <div class="mod-name">Programmatic Access</div>
-        <div class="mod-desc">Full JSON API: <code>/api/fetch-arxiv</code>, <code>/api/query</code>, <code>/api/compare</code>, <code>/api/evaluate-batch</code>. All dashboard features accessible without the UI.</div>
-        <div class="mod-detail"><span class="mod-detail-key">Endpoints</span><span style="color:#a78bfa;font-weight:700">4 routes</span></div>
+        <div class="mod-desc">Full JSON API: <code>/api/fetch-arxiv</code>, <code>/api/query</code>, <code>/api/compare</code>. All dashboard features accessible without the UI.</div>
+        <div class="mod-detail"><span class="mod-detail-key">Endpoints</span><span style="color:#a78bfa;font-weight:700">3 routes</span></div>
         <div class="mod-detail"><span class="mod-detail-key">Status</span><span style="font-weight:700">✅ Live</span></div>
       </div>
       <div class="mod-card mod-6">
@@ -291,7 +284,6 @@ h1{font-size:clamp(1.7rem,3.5vw,2.7rem);font-weight:900;line-height:1.2;margin-b
       <button class="scen-btn active" onclick="selectScen(0,this)">BM25</button>
       <button class="scen-btn" onclick="selectScen(1,this)">Dense Vector</button>
       <button class="scen-btn" onclick="selectScen(2,this)">Hybrid RRF</button>
-      <button class="scen-btn" onclick="selectScen(3,this)">Batch Eval</button>
     </div>
     <div id="scenOutput"></div>
     <p class="demo-note">Metrics computed on arXiv CS.CL papers. Context Relevance = cosine similarity. Diversity = 1 − mean pairwise similarity. Faithfulness = answer token overlap with context.</p>
@@ -346,7 +338,7 @@ h1{font-size:clamp(1.7rem,3.5vw,2.7rem);font-weight:900;line-height:1.2;margin-b
 <div class="sidebar">
   <div class="sidebar-card">
     <h3>At a Glance</h3>
-    <p class="tldr-text"><strong>What it is:</strong> A hybrid RAG benchmarking platform for arXiv research papers. <strong>Tech:</strong> Flask · Plotly Dash · FAISS · BM25 · Flan-T5. <strong>Deploy:</strong> Docker on HuggingFace Spaces free tier. <strong>Scope:</strong> Retrieval evaluation across BM25, dense vector, and hybrid fusion.</p>
+    <p class="tldr-text"><strong>What it is:</strong> A hybrid RAG platform — load arXiv papers by domain, ask questions, get answers with live comparison across BM25, dense vector, and hybrid fusion. <strong>Tech:</strong> Flask · Plotly Dash · FAISS · BM25 · Flan-T5. <strong>Deploy:</strong> Docker on HuggingFace Spaces free tier. <strong>UI:</strong> 2-tab design — Load and Ask &amp; Compare.</p>
   </div>
   <div class="sidebar-card">
     <h3>Try It Live</h3>
