@@ -41,44 +41,6 @@ button,input,textarea,select{font-family:inherit}
 .rc-slider-track{background:var(--pr)!important}
 .rc-slider-handle{border-color:var(--pr)!important;background:var(--pr)!important}
 
-/* ── LANDING ── */
-.landing{
-  width:100%;min-height:100vh;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:60px 24px;text-align:center;
-  background:radial-gradient(ellipse 110% 60% at 50% -5%,rgba(129,140,248,.22) 0%,transparent 55%);
-  position:relative;overflow:hidden;
-}
-.landing::after{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background-image:linear-gradient(rgba(129,140,248,.04) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(129,140,248,.04) 1px,transparent 1px);
-  background-size:52px 52px;
-}
-[data-theme="light"] .landing{background:radial-gradient(ellipse 110% 60% at 50% -5%,rgba(79,70,229,.11) 0%,transparent 55%)}
-.l-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 16px;border:1px solid var(--pr-bd);border-radius:20px;background:var(--pr-bg);font-size:11px;font-weight:700;color:var(--pr);letter-spacing:.06em;text-transform:uppercase;margin-bottom:26px;position:relative;z-index:1}
-.l-title{font-size:clamp(2rem,5vw,3.4rem);font-weight:900;line-height:1.15;margin:0 auto 16px;max-width:1000px;position:relative;z-index:1}
-.l-title .g{background:linear-gradient(135deg,var(--pr),var(--ok));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.l-sub{font-size:.97rem;color:var(--mt);max-width:800px;line-height:1.75;margin:0 auto 48px;position:relative;z-index:1}
-.l-sub strong{color:var(--tx)}
-.l-who{font-size:11px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;position:relative;z-index:1;text-align:center}
-.l-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:1000px;margin:0 auto 30px;position:relative;z-index:1}
-.l-card{background:var(--sf);border:1.5px solid var(--bd);border-radius:16px;padding:26px 22px;cursor:pointer;text-align:left;transition:all .22s;position:relative;overflow:hidden;width:100%}
-.l-card:hover{transform:translateY(-5px);box-shadow:var(--sh)}
-.l-card.gen:hover{border-color:var(--ok);box-shadow:0 14px 40px rgba(63,185,80,.15)}
-.l-card.exp:hover{border-color:var(--pr);box-shadow:0 14px 40px rgba(129,140,248,.2)}
-.l-glow{position:absolute;inset:0;border-radius:14px;opacity:0;transition:opacity .22s;pointer-events:none}
-.l-card.gen .l-glow{background:radial-gradient(circle at 0 0,rgba(63,185,80,.1),transparent 65%)}
-.l-card.exp .l-glow{background:radial-gradient(circle at 0 0,rgba(129,140,248,.1),transparent 65%)}
-.l-card:hover .l-glow{opacity:1}
-.l-icon{font-size:2.2rem;margin-bottom:10px;display:block;position:relative;z-index:1}
-.l-name{font-size:.97rem;font-weight:800;color:var(--tx);margin-bottom:5px;position:relative;z-index:1}
-.l-desc{font-size:.81rem;color:var(--mt);line-height:1.6;position:relative;z-index:1}
-.l-tag{display:inline-block;margin-top:9px;font-size:.69rem;font-weight:700;padding:3px 10px;border-radius:6px;position:relative;z-index:1}
-.l-card.gen .l-tag{background:rgba(63,185,80,.12);color:var(--ok);border:1px solid rgba(63,185,80,.25)}
-.l-card.exp .l-tag{background:var(--pr-bg);color:var(--pr);border:1px solid var(--pr-bd)}
-.l-note{font-size:.77rem;color:var(--mt);position:relative;z-index:1;text-align:center}
-
 /* ── APP SHELL ── */
 .topbar{width:100%;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:var(--sf);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:200;transition:background .3s}
 .tb-left{display:flex;align-items:center;gap:10px}
@@ -314,59 +276,22 @@ def _layout():
 
     return html.Div([
         dcc.Store(id="s-theme",data="dark",storage_type="session"),
-        dcc.Store(id="s-mode",data="landing",storage_type="session"),
         dcc.Store(id="s-tab",data="load",storage_type="session"),
         dcc.Store(id="s-step",data=0,storage_type="session"),
         dcc.Store(id="s-method",data="hybrid"),
         dcc.Store(id="s-pex",data=-1),
         dcc.Interval(id="iv",interval=7000,n_intervals=0),
 
-        # ── LANDING ──────────────────────────────────────────────────────
-        html.Div([
-            html.Div("🔬 research-rag-bench",className="l-badge"),
-            html.H1(["Ask questions. ",html.Span("Get answers from real research.",className="g")],className="l-title"),
-            html.P(["Fetches real scientific papers, searches them with AI, and writes a grounded answer. ",html.Strong("Free. No API key. Open-source.")],className="l-sub"),
-            html.Div("How would you describe yourself?",className="l-who"),
-            html.Div([
-                html.Button([html.Div(className="l-glow"),html.Span("🙋",className="l-icon"),html.Div("I'm new to AI / just curious",className="l-name"),html.Div("Guided with plain English, ready-made examples, and simple controls.",className="l-desc"),html.Span("Simple mode",className="l-tag")],id="pick-s",className="l-card gen",n_clicks=0),
-                html.Button([html.Div(className="l-glow"),html.Span("🔬",className="l-icon"),html.Div("Data scientist / ML engineer",className="l-name"),html.Div("Full controls — retrieval methods, chunking strategy, top-k, evaluation charts.",className="l-desc"),html.Span("Expert mode",className="l-tag")],id="pick-e",className="l-card exp",n_clicks=0),
-            ],className="l-cards"),
-            html.Div("You can switch modes at any time from the top bar.",className="l-note"),
-        ],id="div-landing",style={"width":"100%"}),
-
         # ── APP SHELL ─────────────────────────────────────────────────────
         html.Div([
             html.Div([
                 html.Div([html.Span("🔬",style={"fontSize":"17px"}),html.Span("research-rag-bench",className="tb-logo"),html.Span("Hybrid RAG · arXiv",className="tb-badge")],className="tb-left"),
-                html.Div([html.Span("",id="stats-txt",className="tb-stats"),html.Button("🏠 Home",id="btn-home",className="ib home"),html.Button("↕ Mode",id="btn-mode",className="ib"),html.Button("🌙",id="btn-theme",className="ib")],className="tb-right"),
+                html.Div([html.Span("",id="stats-txt",className="tb-stats"),html.Button("🌙",id="btn-theme",className="ib")],className="tb-right"),
             ],className="topbar"),
             html.Div([
                 html.Button("📥  Load",id="tab-load",className="tab-btn on",n_clicks=0),
-                html.Button("🏠  Ask",id="tab-ask",className="tab-btn",n_clicks=0),
-                html.Button("⚖️  Compare",id="tab-compare",className="tab-btn",n_clicks=0),
-                html.Button("📊  Evaluate",id="tab-evaluate",className="tab-btn",n_clicks=0),
+                html.Button("🔍  Ask & Compare",id="tab-ask",className="tab-btn",n_clicks=0),
             ],className="tabs-bar"),
-
-            # ASK TAB
-            html.Div([
-                html.Div([
-                    html.Div("🔬 research-rag-bench",className="sh-logo"),
-                    html.Div(id="steps-out"),
-                    html.Div([
-                        dcc.Input(id="q-input",type="text",debounce=False,n_submit=0,placeholder="Ask anything about your indexed papers…",className="search-box"),
-                        html.Button("Ask →",id="q-btn",className="search-ask-btn",n_clicks=0),
-                    ],className="search-box-wrap"),
-                    html.Div("Press Enter or click Ask →",className="search-hint"),
-                    html.Div([
-                        html.Div([html.Div("Search method",className="ctrl-lbl"),html.Div(mc_btns,className="mc-row"),dcc.RadioItems(id="q-method",value="hybrid",options=[{"label":k,"value":k} for k in ["bm25","vector","hybrid"]],style={"display":"none"})],className="ctrl-card"),
-                        html.Div([html.Div("Number of results",className="ctrl-lbl"),dcc.Slider(id="q-k",min=1,max=10,step=1,value=5,marks={i:str(i) for i in [1,3,5,7,10]},tooltip={"placement":"bottom"}),html.Div(style={"height":"10px"}),html.Div("Generator model",className="ctrl-lbl"),dcc.Dropdown(id="q-model",options=gen_opts,value=DEFAULT_MODEL,clearable=False,style={"fontSize":"13px"}),html.Div(id="model-tip")],className="ctrl-card"),
-                    ],className="expert-panel",id="expert-panel"),
-                ],className="search-hero",id="search-hero"),
-                # Ask loading banner — shown while waiting for answer
-                html.Div(id="ask-loading-banner",style={"width":"100%","maxWidth":"900px","display":"none"}),
-                # Answer output
-                html.Div(id="answer-out",style={"width":"100%","display":"flex","flexDirection":"column","alignItems":"center"}),
-            ],id="div-ask",style={"width":"100%","display":"none","flexDirection":"column","alignItems":"center"}),
 
             # LOAD TAB
             html.Div([
@@ -389,47 +314,38 @@ def _layout():
                 html.Div([html.Div("Indexed papers",className="card-h"),html.Div(id="papers-table")],className="card"),
             ],id="div-load",className="page",style={"display":"flex","flexDirection":"column","alignItems":"center"}),
 
-            # COMPARE TAB
+            # ASK & COMPARE TAB
             html.Div([
                 html.Div([
-                    html.Div("Compare all three search methods",className="card-h"),
-                    html.P("Run the same question through BM25, Dense Vector, and Hybrid simultaneously to see which retrieves the most relevant passages.",style={"fontSize":"13px","color":"var(--mt)","marginBottom":"12px","lineHeight":"1.6"}),
-                    html.Label("Your question",className="fl"),
-                    dcc.Input(id="cmp-q",type="text",placeholder="How does attention work in transformers?",className="inp"),
-                    html.Div([html.Label("Results per method",className="fl",style={"marginTop":"12px"}),dcc.Slider(id="cmp-k",min=1,max=8,step=1,value=4,marks={i:str(i) for i in range(1,9)},tooltip={"placement":"bottom"})]),
-                    html.Div([html.Button("⚖️  Run Comparison",id="cmp-btn",className="btn btn-p")],className="brow"),
-                ],className="card"),
-                dcc.Loading(html.Div(id="cmp-out"),type="circle",color="var(--pr)"),
-            ],id="div-compare",className="page-wide",style={"display":"none"}),
+                    html.Div("🔬 research-rag-bench",className="sh-logo"),
+                    html.Div(id="steps-out"),
+                    html.Div([
+                        dcc.Input(id="q-input",type="text",debounce=False,n_submit=0,placeholder="Ask anything about your indexed papers…",className="search-box"),
+                        html.Button("Ask →",id="q-btn",className="search-ask-btn",n_clicks=0),
+                    ],className="search-box-wrap"),
+                    html.Div("Press Enter or click Ask →",className="search-hint"),
+                    html.Div([
+                        html.Div([html.Div("Search method",className="ctrl-lbl"),html.Div(mc_btns,className="mc-row"),dcc.RadioItems(id="q-method",value="hybrid",options=[{"label":k,"value":k} for k in ["bm25","vector","hybrid"]],style={"display":"none"})],className="ctrl-card"),
+                        html.Div([html.Div("Number of results",className="ctrl-lbl"),dcc.Slider(id="q-k",min=1,max=10,step=1,value=5,marks={i:str(i) for i in [1,3,5,7,10]},tooltip={"placement":"bottom"}),html.Div(style={"height":"10px"}),html.Div("Generator model",className="ctrl-lbl"),dcc.Dropdown(id="q-model",options=gen_opts,value=DEFAULT_MODEL,clearable=False,style={"fontSize":"13px"}),html.Div(id="model-tip")],className="ctrl-card"),
+                    ],className="expert-panel",id="expert-panel",style={"display":"grid","gridTemplateColumns":"1fr 1fr","gap":"14px","width":"100%","maxWidth":"900px","margin":"16px auto 14px"}),
+                ],className="search-hero",id="search-hero"),
+                html.Div(id="ask-loading-banner",style={"width":"100%","maxWidth":"900px","display":"none"}),
+                html.Div(id="answer-out",style={"width":"100%","display":"flex","flexDirection":"column","alignItems":"center"}),
+            ],id="div-ask",style={"width":"100%","display":"none","flexDirection":"column","alignItems":"center"}),
 
-            # EVALUATE TAB
-            html.Div([
-                html.Div([
-                    html.Div("Batch evaluation",className="card-h"),
-                    html.P("Enter up to 10 questions (one per line) to benchmark all three retrieval methods at once.",style={"fontSize":"13px","color":"var(--mt)","marginBottom":"12px","lineHeight":"1.6"}),
-                    html.Label("Test questions — one per line",className="fl"),
-                    dcc.Textarea(id="eval-qs",className="inp inp-a",placeholder="What is attention?\nHow does BERT differ from GPT?\nExplain gradient descent"),
-                    html.Div([html.Label("Results per question",className="fl",style={"marginTop":"12px"}),dcc.Slider(id="eval-k",min=1,max=8,step=1,value=5,marks={i:str(i) for i in range(1,9)},tooltip={"placement":"bottom"})]),
-                    html.Div([html.Button("📊  Run Evaluation",id="eval-btn",className="btn btn-p")],className="brow"),
-                ],className="card"),
-                dcc.Loading(html.Div(id="eval-out"),type="circle",color="var(--pr)"),
-            ],id="div-evaluate",className="page",style={"display":"none"}),
+        ],id="div-app",style={"width":"100%"}),
 
-        ],id="div-app",style={"display":"none","width":"100%"}),
-
-        # ── MODAL — always in DOM so callbacks always wire ─────────────────
+        # ── MODAL ─────────────────────────────────────────────────────────
         html.Div([
             html.Div([
                 html.Div("",id="m-icon",className="m-icon"),
                 html.Div("",id="m-title",className="m-title"),
                 html.Div("",id="m-body",className="m-body"),
                 html.Div("",id="m-q",className="m-q"),
-                # Loading banner inside modal — shown while papers are being fetched
                 html.Div(id="m-loading",style={"display":"none"}),
-                # Action buttons
                 html.Div([
                     html.Button("📥 Yes, load papers",id="modal-yes",n_clicks=0,className="btn btn-p",style={"flex":"1","justifyContent":"center"}),
-                    html.Button("✏️ I'll type my own", id="modal-no", n_clicks=0,className="btn btn-g",style={"flex":"1","justifyContent":"center"}),
+                    html.Button("✏️ I'll type my own",id="modal-no",n_clicks=0,className="btn btn-g",style={"flex":"1","justifyContent":"center"}),
                 ],className="m-btns",id="m-btns"),
             ],className="modal-box"),
         ],id="modal-overlay",className="modal-overlay",style={"display":"none"}),
@@ -450,28 +366,6 @@ def create_dash_app(server):
         [Output("s-theme","data"),Output("btn-theme","children")],
         Input("btn-theme","n_clicks"),State("s-theme","data"),prevent_initial_call=True)
 
-    # landing / app toggle
-    @app.callback(Output("div-landing","style"),Output("div-app","style"),Input("s-mode","data"))
-    def toggle_screens(mode):
-        if mode=="landing": return {"width":"100%","display":"block"},{"display":"none"}
-        return {"display":"none"},{"width":"100%","display":"block"}
-
-    # mode selection
-    @app.callback(Output("s-mode","data"),Input("pick-s","n_clicks"),Input("pick-e","n_clicks"),Input("btn-mode","n_clicks"),Input("btn-home","n_clicks"),State("s-mode","data"),prevent_initial_call=True)
-    def set_mode(ns,ne,nm,nh,cur):
-        t=ctx.triggered_id
-        if t=="pick-s": return "simple"
-        if t=="pick-e": return "expert"
-        if t=="btn-home": return "landing"
-        if t=="btn-mode": return "expert" if cur=="simple" else "simple"
-        return cur
-
-    # expert panel
-    @app.callback(Output("expert-panel","style"),Input("s-mode","data"))
-    def expert_panel(mode):
-        if mode=="simple": return {"display":"none"}
-        return {"display":"grid","gridTemplateColumns":"1fr 1fr","gap":"14px","width":"100%","maxWidth":"900px","margin":"16px 0 14px"}
-
     # hero compact
     @app.callback(Output("search-hero","className"),Input("s-step","data"))
     def hero_class(step): return "search-hero compact" if (step or 0)>=2 else "search-hero"
@@ -489,23 +383,17 @@ def create_dash_app(server):
 
     # tab switching
     @app.callback(
-        Output("div-ask","style"),Output("div-load","style"),Output("div-compare","style"),Output("div-evaluate","style"),
-        Output("tab-ask","className"),Output("tab-load","className"),Output("tab-compare","className"),Output("tab-evaluate","className"),
+        Output("div-ask","style"),Output("div-load","style"),
+        Output("tab-ask","className"),Output("tab-load","className"),
         Output("s-tab","data"),
-        Input("tab-ask","n_clicks"),Input("tab-load","n_clicks"),Input("tab-compare","n_clicks"),Input("tab-evaluate","n_clicks"),
+        Input("tab-ask","n_clicks"),Input("tab-load","n_clicks"),
         prevent_initial_call=True)
     def switch_tab(*_):
         t=(ctx.triggered_id or "tab-load").replace("tab-","")
         ask_on={"width":"100%","display":"flex","flexDirection":"column","alignItems":"center"}
         page_s={"display":"flex","flexDirection":"column","alignItems":"center"}
-        styles={
-            "ask":      {**ask_on} if t=="ask" else {"display":"none"},
-            "load":     {**page_s} if t=="load" else {"display":"none"},
-            "compare":  {**page_s} if t=="compare" else {"display":"none"},
-            "evaluate": {**page_s} if t=="evaluate" else {"display":"none"},
-        }
-        tabs=["ask","load","compare","evaluate"]
-        return (*[styles[k] for k in tabs],*["tab-btn on" if k==t else "tab-btn" for k in tabs],t)
+        styles={"ask":{**ask_on} if t=="ask" else {"display":"none"},"load":{**page_s} if t=="load" else {"display":"none"}}
+        return styles["ask"],styles["load"],"tab-btn on" if t=="ask" else "tab-btn","tab-btn on" if t=="load" else "tab-btn",t
 
     # method cards
     @app.callback(Output("q-method","value"),Output("mc-bm25","className"),Output("mc-vector","className"),Output("mc-hybrid","className"),Input("mc-bm25","n_clicks"),Input("mc-vector","n_clicks"),Input("mc-hybrid","n_clicks"),prevent_initial_call=True)
@@ -611,9 +499,9 @@ def create_dash_app(server):
         Output("answer-out","children"),Output("ask-loading-banner","style",allow_duplicate=True),
         Output("s-step","data",allow_duplicate=True),
         Input("q-btn","n_clicks"),Input("q-input","n_submit"),
-        State("q-input","value"),State("q-method","value"),State("q-k","value"),State("q-model","value"),State("s-mode","data"),
+        State("q-input","value"),State("q-method","value"),State("q-k","value"),State("q-model","value"),State("s-theme","data"),
         prevent_initial_call=True)
-    def handle_query(_,ns,question,method,k,model_id,mode):
+    def handle_query(_,ns,question,method,k,model_id,theme):
         from app.store import store
         from app.models.generator import generate_answer,MODEL_OPTIONS,DEFAULT_MODEL
         from app.models.retriever import retrieve_top_k
@@ -622,21 +510,42 @@ def create_dash_app(server):
         if not question or not question.strip():
             return html.Span("⚠️ Please enter a question.",className="wn"),hide_banner,dash.no_update
         if not store.is_indexed:
-            return html.Div([html.Span("⚠️ No papers loaded yet. ",className="wn",style={"fontWeight":"700"}),html.Span("Click any example card to load papers automatically, or go to the Load tab.",style={"color":"var(--mt)","fontSize":"13px"})]),hide_banner,dash.no_update
+            return html.Div([html.Span("⚠️ No papers loaded yet. ",className="wn",style={"fontWeight":"700"}),html.Span("Go to Load tab and click an example or search a topic.",style={"color":"var(--mt)","fontSize":"13px"})]),hide_banner,dash.no_update
         mid=model_id or DEFAULT_MODEL
-        if mode=="simple": method,k="hybrid",5
-        results=retrieve_top_k(question,method or "hybrid",store.faiss_index,store.bm25_index,store.chunks,k=k or 5)
+        sel_method=method or "hybrid"
+        k_val=k or 5
+        t=theme or "dark"
+        # Run selected method for the answer
+        results=retrieve_top_k(question,sel_method,store.faiss_index,store.bm25_index,store.chunks,k=k_val)
         context="\n\n".join(r["chunk"]["text"] for r in results)
         answer=generate_answer(question,context,model_id=mid)
         mt=evaluate_retrieval(question,results);mt["faithfulness"]=answer_faithfulness(answer,context)
         mlabel=MODEL_OPTIONS.get(mid,{}).get("label",mid)
-        simple=mode=="simple"
-        mth_label=METHODS.get(method or "hybrid",METHODS["hybrid"])["label"]
+        mth_label=METHODS.get(sel_method,METHODS["hybrid"])["label"]
+        # Run all 3 methods for comparison
+        all_r,all_m={},{}
+        for m in ["bm25","vector","hybrid"]:
+            r=retrieve_top_k(question,m,store.faiss_index,store.bm25_index,store.chunks,k=k_val)
+            all_r[m]=r;all_m[m]=evaluate_retrieval(question,r)
+        # 3-column passage comparison
+        cols=[html.Div([
+            html.Div([html.Span("●",style={"color":METHODS[m]["color"],"fontSize":"16px","marginRight":"6px"}),html.Span(METHODS[m]["label"],style={"fontWeight":"800","fontSize":"13px"})],style={"display":"flex","alignItems":"center","marginBottom":"7px"}),
+            html.Div(f"Relevance: {all_m[m]['context_relevance']}  ·  Diversity: {all_m[m]['diversity']}",style={"fontSize":"12px","color":"var(--mt)","marginBottom":"10px"}),
+            html.Div([_chunk(r,compact=True) for r in all_r[m]])
+        ],className="card",style={"flex":"1","minWidth":"0","margin":"0 4px"}) for m in ["bm25","vector","hybrid"]]
         return html.Div([
-            html.Div([html.Div("Answer",className="a-lbl"),html.P(answer,className="a-txt",style={"color":"var(--tx)"}),html.Div(f"Generated by {mlabel}",className="a-by")],className="a-card"),
+            # Answer
+            html.Div([html.Div("Answer",className="a-lbl"),html.P(answer,className="a-txt",style={"color":"var(--tx)"}),html.Div(f"Generated by {mlabel} · method: {mth_label}",className="a-by")],className="a-card"),
+            # Metrics
             html.Div([_metric("Relevance",mt["context_relevance"],"var(--pr)"),_metric("Faithfulness",round(mt["faithfulness"],3),"var(--ok)"),_metric("Diversity",mt["diversity"],"var(--wn)"),_metric("Chunks",mt["n_retrieved"],"var(--mt)")],className="mrow"),
-            (html.Div([html.Span("📐 Scores: ",style={"fontWeight":"700","fontSize":"12px","color":"var(--tx)"}),html.Span("Relevance = how on-topic the passages are. Faithfulness = how grounded the answer is in the papers (1.0 = nothing made up). Diversity = how varied the passages are.",style={"fontSize":"12px","color":"var(--mt)"})],style={"background":"var(--pr-bg)","border":"1px solid var(--pr-bd)","borderRadius":"8px","padding":"10px 14px","marginBottom":"14px","lineHeight":"1.7"}) if simple else html.Div()),
-            html.Div([html.Div([html.Span("Retrieved passages",style={"fontWeight":"700","fontSize":"13px","color":"var(--tx)"}),html.Span(f" · {mth_label}",style={"fontSize":"12px","color":"var(--pr)","fontWeight":"700"})],className="c-hdr"),html.Div([_chunk(r) for r in results])],className="c-wrap"),
+            # Charts
+            html.Div([
+                html.Div([dcc.Graph(figure=_radar(all_m,t),config={"displayModeBar":False})],style={"flex":"1"}),
+                html.Div([dcc.Graph(figure=_bar(all_m,t),config={"displayModeBar":False})],style={"flex":"1"}),
+            ],style={"display":"flex","gap":"14px","width":"100%","marginBottom":"14px"}),
+            # 3-column passages
+            html.Div([html.Span("Retrieved passages — all 3 methods",style={"fontWeight":"700","fontSize":"13px","color":"var(--tx)"})],className="c-hdr",style={"marginBottom":"10px"}),
+            html.Div(cols,style={"display":"flex","gap":"0","width":"100%"}),
         ],className="answer-wrap"),hide_banner,2
 
     # ingest
@@ -668,43 +577,5 @@ def create_dash_app(server):
             return html.Span(f"✅ {len(papers)} paper(s) → {len(new_chunks)} new chunks. Total: {s['n_documents']} docs, {s['n_chunks']} chunks.",className="ok"),_papers_table(store.documents)
         except Exception as exc:
             return html.Span(f"❌ {exc}",className="er"),dash.no_update
-
-    # compare
-    @app.callback(Output("cmp-out","children"),Input("cmp-btn","n_clicks"),State("cmp-q","value"),State("cmp-k","value"),State("s-theme","data"),prevent_initial_call=True)
-    def handle_compare(_,q,k,theme):
-        from app.store import store
-        from app.models.retriever import retrieve_top_k
-        from app.utils.metrics import evaluate_retrieval
-        if not q or not q.strip(): return html.Span("⚠️ Please enter a question.",className="wn")
-        if not store.is_indexed: return html.Span("⚠️ No papers indexed.",className="wn")
-        all_r,all_m={},{}
-        for m in ["bm25","vector","hybrid"]:
-            r=retrieve_top_k(q,m,store.faiss_index,store.bm25_index,store.chunks,k=k or 4)
-            all_r[m]=r;all_m[m]=evaluate_retrieval(q,r)
-        t=theme or "dark"
-        cols=[html.Div([html.Div([html.Span("●",style={"color":METHODS[m]["color"],"fontSize":"16px","marginRight":"6px"}),html.Span(METHODS[m]["label"],style={"fontWeight":"800","fontSize":"13px"})],style={"display":"flex","alignItems":"center","marginBottom":"7px"}),html.Div(f"Relevance: {all_m[m]['context_relevance']}  ·  Diversity: {all_m[m]['diversity']}",style={"fontSize":"12px","color":"var(--mt)","marginBottom":"10px"}),html.Div([_chunk(r,compact=True) for r in all_r[m]])],className="card",style={"flex":"1","minWidth":"0","margin":"0 4px"}) for m in ["bm25","vector","hybrid"]]
-        return html.Div([html.Div([dcc.Graph(figure=_radar(all_m,t),config={"displayModeBar":False})],className="card"),html.Div([dcc.Graph(figure=_bar(all_m,t),config={"displayModeBar":False})],className="card"),html.Div(cols,style={"display":"flex","gap":"0"})])
-
-    # evaluate
-    @app.callback(Output("eval-out","children"),Input("eval-btn","n_clicks"),State("eval-qs","value"),State("eval-k","value"),State("s-theme","data"),prevent_initial_call=True)
-    def handle_eval(_,qs_text,k,theme):
-        from app.store import store
-        from app.models.retriever import retrieve_top_k
-        from app.utils.metrics import evaluate_retrieval
-        if not qs_text or not qs_text.strip(): return html.Span("⚠️ Please enter questions.",className="wn")
-        if not store.is_indexed: return html.Span("⚠️ No papers indexed.",className="wn")
-        qs=[q.strip() for q in qs_text.strip().split("\n") if q.strip()][:10]
-        agg={m:{"context_relevance":[],"diversity":[]} for m in ["bm25","vector","hybrid"]}
-        for q in qs:
-            for m in agg:
-                r=retrieve_top_k(q,m,store.faiss_index,store.bm25_index,store.chunks,k=k or 5)
-                mt=evaluate_retrieval(q,r)
-                agg[m]["context_relevance"].append(mt["context_relevance"])
-                agg[m]["diversity"].append(mt["diversity"])
-        avg_r={m:round(sum(v["context_relevance"])/len(v["context_relevance"]),4) for m,v in agg.items()}
-        avg_d={m:round(sum(v["diversity"])/len(v["diversity"]),4) for m,v in agg.items()}
-        summary={m:{"context_relevance":avg_r[m],"diversity":avg_d[m],"avg_score":round((avg_r[m]+avg_d[m])/2,4)} for m in ["bm25","vector","hybrid"]}
-        t=theme or "dark"
-        return html.Div([html.Div([dcc.Graph(figure=_radar(summary,t),config={"displayModeBar":False})],className="card"),html.Div([dcc.Graph(figure=_area(qs,agg,t),config={"displayModeBar":False})],className="card"),html.Div([html.Span(f"✅ Evaluated {len(qs)} question(s) across 3 methods.",className="ok",style={"display":"block","marginBottom":"7px"}),html.P("Hybrid RRF consistently scores highest — keyword precision from BM25 combined with semantic coverage from dense retrieval.",style={"fontSize":"13px","color":"var(--mt)","lineHeight":"1.6"})],className="card")])
 
     return app
