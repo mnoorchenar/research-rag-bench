@@ -358,10 +358,6 @@ def _layout():
                     ],className="search-box-wrap"),
                     html.Div("Press Enter or click Ask →",className="search-hint"),
                     html.Div([
-                        html.Div("✨ Or try an example — papers load automatically",className="ex-label"),
-                        html.Div(ex_btns,className="ex-grid"),
-                    ],className="ex-section"),
-                    html.Div([
                         html.Div([html.Div("Search method",className="ctrl-lbl"),html.Div(mc_btns,className="mc-row"),dcc.RadioItems(id="q-method",value="hybrid",options=[{"label":k,"value":k} for k in ["bm25","vector","hybrid"]],style={"display":"none"})],className="ctrl-card"),
                         html.Div([html.Div("Number of results",className="ctrl-lbl"),dcc.Slider(id="q-k",min=1,max=10,step=1,value=5,marks={i:str(i) for i in [1,3,5,7,10]},tooltip={"placement":"bottom"}),html.Div(style={"height":"10px"}),html.Div("Generator model",className="ctrl-lbl"),dcc.Dropdown(id="q-model",options=gen_opts,value=DEFAULT_MODEL,clearable=False,style={"fontSize":"13px"}),html.Div(id="model-tip")],className="ctrl-card"),
                     ],className="expert-panel",id="expert-panel"),
@@ -375,8 +371,12 @@ def _layout():
             # LOAD TAB
             html.Div([
                 html.Div([
+                    html.Div("✨ Quick start — click a topic to load papers automatically",className="ex-label"),
+                    html.Div(ex_btns,className="ex-grid"),
+                ],className="ex-section",style={"marginBottom":"24px"}),
+                html.Div([
                     html.Div("Load papers from arXiv",className="card-h"),
-                    html.P("Search any topic — we fetch real papers and build your knowledge base. Example cards above do this automatically.",style={"fontSize":"13px","color":"var(--mt)","marginBottom":"12px","lineHeight":"1.6"}),
+                    html.P("Or search any custom topic — we fetch real papers and build your knowledge base.",style={"fontSize":"13px","color":"var(--mt)","marginBottom":"12px","lineHeight":"1.6"}),
                     html.Label("Search topic",className="fl"),
                     dcc.Input(id="ingest-q",type="text",placeholder="e.g. survey large language models transformer",className="inp"),
                     html.Div([
