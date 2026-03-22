@@ -98,7 +98,25 @@ def _ingest_layout():
     ], style={"maxWidth": "820px", "margin": "0 auto"})
 
 
+def _model_tip_banner(selected: str):
+    """Upgrade/downgrade suggestion banner shown above the answer area."""
+    from app.models.generator import MODEL_OPTIONS, DEFAULT_MODEL
+    cfg = MODEL_OPTIONS.get(selected, MODEL_OPTIONS[DEFAULT_MODEL])
+    tips = {
+        "google/flan-t5-base":  ("⚡", C["warning"], "You are using the fastest but weakest model. For better answers switch to Flan-T5 Large."),
+        "google/flan-t5-large": ("✅", C["success"], "You are using the recommended model — good balance of speed and answer quality."),
+        "google/flan-t5-xl":    ("🧠", C["primary"], "You are using the most capable model. Expect slower responses on CPU (~60 s per query)."),
+    }
+    icon, color, msg = tips.get(selected, tips[DEFAULT_MODEL])
+    return html.Div([
+        html.Span(icon, style={"marginRight": "8px", "fontSize": "16px"}),
+        html.Span(msg,  style={"fontSize": "13px", "color": color}),
+    ], style={"padding": "10px 16px", "background": f"{color}12", "border": f"1px solid {color}28", "borderRadius": "8px", "marginBottom": "14px", "display": "flex", "alignItems": "center"})
+
+
 def _query_layout():
+    from app.models.generator import MODEL_OPTIONS, DEFAULT_MODEL
+    model_dropdown_options = [{"label": v["label"], "value": k} for k, v in MODEL_OPTIONS.items()]
     return html.Div([
         card([
             html.Label("Your question", style=LABEL),
@@ -107,7 +125,18 @@ def _query_layout():
                 html.Div([html.Label("Retrieval method", style={**LABEL, "marginTop": "14px"}), dcc.RadioItems(id="query-method", options=[{"label": "  BM25", "value": "bm25"}, {"label": "  Dense Vector", "value": "vector"}, {"label": "  Hybrid RRF", "value": "hybrid"}], value="hybrid", inline=True, labelStyle={"marginRight": "18px", "fontSize": "14px"})], style={"flex": "1"}),
                 html.Div([html.Label("Top-k chunks", style={**LABEL, "marginTop": "14px"}), dcc.Slider(id="query-k", min=1, max=10, step=1, value=5, marks={i: str(i) for i in [1, 3, 5, 7, 10]}, tooltip={"placement": "bottom"})], style={"flex": "1", "marginLeft": "28px"}),
             ], style={"display": "flex"}),
-            html.Button("💬  Get Answer", id="query-btn", style=BTN),
+            html.Div([
+                html.Label("Generator model", style={**LABEL, "marginTop": "14px"}),
+                dcc.Dropdown(
+                    id="query-model",
+                    options=model_dropdown_options,
+                    value=DEFAULT_MODEL,
+                    clearable=False,
+                    style={"fontSize": "13px"},
+                ),
+                html.Div(id="model-tip", style={"marginTop": "10px"}),
+            ]),
+            html.Button("💬  Get Answer", id="query-btn", style={**BTN, "marginTop": "16px"}),
         ]),
         dcc.Loading(html.Div(id="query-output"), type="dot", color=C["primary"]),
     ], style={"maxWidth": "820px", "margin": "0 auto"})
@@ -225,16 +254,22 @@ def create_dash_app(server):
         except Exception as exc:
             return html.Span(f"❌  Error: {exc}", style=NOTICE_ERR), dash.no_update
 
+    # ── model tip banner (updates when dropdown changes, no query needed) ─────
+    @app.callback(Output("model-tip", "children"), Input("query-model", "value"), prevent_initial_call=False)
+    def update_model_tip(model_id):
+        from app.models.generator import DEFAULT_MODEL
+        return _model_tip_banner(model_id or DEFAULT_MODEL)
+
     # ── query ─────────────────────────────────────────────────────────────────
     @app.callback(
         Output("query-output", "children"),
         Input("query-btn", "n_clicks"),
-        State("query-input", "value"), State("query-method", "value"), State("query-k", "value"),
+        State("query-input", "value"), State("query-method", "value"), State("query-k", "value"), State("query-model", "value"),
         prevent_initial_call=True,
     )
-    def handle_query(_, question, method, k):
+    def handle_query(_, question, method, k, model_id):
         from app.store import store
-        from app.models.generator import generate_answer
+        from app.models.generator import generate_answer, DEFAULT_MODEL
         from app.models.retriever import retrieve_top_k
         from app.utils.metrics import evaluate_retrieval, answer_faithfulness
 
@@ -243,16 +278,21 @@ def create_dash_app(server):
         if not store.is_indexed:
             return html.Span("⚠️  No documents indexed. Go to Ingest first.", style=NOTICE_WARN)
 
+        selected_model = model_id or DEFAULT_MODEL
         results = retrieve_top_k(question, method or "hybrid", store.faiss_index, store.bm25_index, store.chunks, k=k or 5)
         context = "\n\n".join(r["chunk"]["text"] for r in results)
-        answer = generate_answer(question, context)
+        answer = generate_answer(question, context, model_id=selected_model)
         mt = evaluate_retrieval(question, results)
         mt["faithfulness"] = answer_faithfulness(answer, context)
+
+        from app.models.generator import MODEL_OPTIONS
+        model_label = MODEL_OPTIONS.get(selected_model, {}).get("label", selected_model)
 
         return html.Div([
             card([
                 html.Div("Answer", style={**LABEL, "marginBottom": "8px"}),
                 html.P(answer, style={"fontSize": "15px", "color": C["text"], "lineHeight": "1.75", "margin": 0}),
+                html.Div(f"Generated by {model_label}", style={"fontSize": "11px", "color": C["muted"], "marginTop": "10px", "fontStyle": "italic"}),
             ], extra={"borderLeft": f"3px solid {C['primary']}"}),
             html.Div([
                 pill("Context Relevance", mt["context_relevance"], C["primary"]),
