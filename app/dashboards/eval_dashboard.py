@@ -315,7 +315,7 @@ def _layout():
     return html.Div([
         dcc.Store(id="s-theme",data="dark",storage_type="session"),
         dcc.Store(id="s-mode",data="landing",storage_type="session"),
-        dcc.Store(id="s-tab",data="ask",storage_type="session"),
+        dcc.Store(id="s-tab",data="load",storage_type="session"),
         dcc.Store(id="s-step",data=0,storage_type="session"),
         dcc.Store(id="s-method",data="hybrid"),
         dcc.Store(id="s-pex",data=-1),
@@ -341,8 +341,8 @@ def _layout():
                 html.Div([html.Span("",id="stats-txt",className="tb-stats"),html.Button("🏠 Home",id="btn-home",className="ib home"),html.Button("↕ Mode",id="btn-mode",className="ib"),html.Button("🌙",id="btn-theme",className="ib")],className="tb-right"),
             ],className="topbar"),
             html.Div([
-                html.Button("🏠  Ask",id="tab-ask",className="tab-btn on",n_clicks=0),
-                html.Button("📥  Load",id="tab-load",className="tab-btn",n_clicks=0),
+                html.Button("📥  Load",id="tab-load",className="tab-btn on",n_clicks=0),
+                html.Button("🏠  Ask",id="tab-ask",className="tab-btn",n_clicks=0),
                 html.Button("⚖️  Compare",id="tab-compare",className="tab-btn",n_clicks=0),
                 html.Button("📊  Evaluate",id="tab-evaluate",className="tab-btn",n_clicks=0),
             ],className="tabs-bar"),
@@ -370,7 +370,7 @@ def _layout():
                 html.Div(id="ask-loading-banner",style={"width":"100%","maxWidth":"900px","display":"none"}),
                 # Answer output
                 html.Div(id="answer-out",style={"width":"100%"}),
-            ],id="div-ask",style={"width":"100%","display":"flex","flexDirection":"column","alignItems":"center"}),
+            ],id="div-ask",style={"width":"100%","display":"none","flexDirection":"column","alignItems":"center"}),
 
             # LOAD TAB
             html.Div([
@@ -387,7 +387,7 @@ def _layout():
                     dcc.Loading(html.Div(id="ingest-status"),type="circle",color="var(--pr)"),
                 ],className="card"),
                 html.Div([html.Div("Indexed papers",className="card-h"),html.Div(id="papers-table")],className="card"),
-            ],id="div-load",className="page",style={"display":"none"}),
+            ],id="div-load",className="page",style={"display":"flex","flexDirection":"column","alignItems":"center"}),
 
             # COMPARE TAB
             html.Div([
@@ -495,13 +495,14 @@ def create_dash_app(server):
         Input("tab-ask","n_clicks"),Input("tab-load","n_clicks"),Input("tab-compare","n_clicks"),Input("tab-evaluate","n_clicks"),
         prevent_initial_call=True)
     def switch_tab(*_):
-        t=(ctx.triggered_id or "tab-ask").replace("tab-","")
+        t=(ctx.triggered_id or "tab-load").replace("tab-","")
         ask_on={"width":"100%","display":"flex","flexDirection":"column","alignItems":"center"}
+        page_s={"display":"flex","flexDirection":"column","alignItems":"center"}
         styles={
             "ask":      {**ask_on} if t=="ask" else {"display":"none"},
-            "load":     {"width":"100%","maxWidth":"960px","margin":"0 auto","padding":"32px 28px","display":"block"} if t=="load" else {"display":"none"},
-            "compare":  {"width":"100%","maxWidth":"1280px","margin":"0 auto","padding":"32px 28px","display":"block"} if t=="compare" else {"display":"none"},
-            "evaluate": {"width":"100%","maxWidth":"960px","margin":"0 auto","padding":"32px 28px","display":"block"} if t=="evaluate" else {"display":"none"},
+            "load":     {**page_s} if t=="load" else {"display":"none"},
+            "compare":  {**page_s} if t=="compare" else {"display":"none"},
+            "evaluate": {**page_s} if t=="evaluate" else {"display":"none"},
         }
         tabs=["ask","load","compare","evaluate"]
         return (*[styles[k] for k in tabs],*["tab-btn on" if k==t else "tab-btn" for k in tabs],t)
