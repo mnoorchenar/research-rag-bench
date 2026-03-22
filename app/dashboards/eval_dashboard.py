@@ -143,6 +143,11 @@ button,input,textarea,select{font-family:inherit}
 .spin{display:inline-block;width:18px;height:18px;border:2.5px solid var(--pr-bd);border-top-color:var(--pr);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ── CHIPS ── */
+.chips-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;margin-bottom:4px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid var(--bd);border-radius:20px;background:var(--sf);color:var(--tx);font-size:12px;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap}
+.chip:hover{border-color:var(--pr);background:var(--pr-bg);color:var(--pr)}
+
 /* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px}
 .modal-box{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:28px;max-width:440px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.4)}
@@ -271,7 +276,7 @@ def _area(qs,agg,t):
 def _layout():
     from app.models.generator import MODEL_OPTIONS, DEFAULT_MODEL
     gen_opts=[{"label":v["label"],"value":k} for k,v in MODEL_OPTIONS.items()]
-    ex_btns=[html.Button([html.Span(e["icon"],className="ex-icon"),html.Div(e["persona"],className="ex-persona"),html.Div(e["q"],className="ex-q"),html.Span(e["tag"],className="ex-tag")],id={"type":"exbtn","index":i},className="ex-card",n_clicks=0) for i,e in enumerate(EXAMPLES)]
+    chips=[html.Button([html.Span(e["icon"]),html.Span(" "+e["q"][:42]+("…" if len(e["q"])>42 else ""))],id={"type":"chip","index":i},className="chip",n_clicks=0) for i,e in enumerate(EXAMPLES)]
     mc_btns=[html.Button([html.Div(METHODS[m]["label"],className="mc-n"),html.Div(METHODS[m]["desc"],className="mc-d")],id=f"mc-{m}",className="mc on" if m=="hybrid" else "mc",n_clicks=0) for m in ["bm25","vector","hybrid"]]
 
     return html.Div([
@@ -279,7 +284,6 @@ def _layout():
         dcc.Store(id="s-tab",data="load",storage_type="session"),
         dcc.Store(id="s-step",data=0,storage_type="session"),
         dcc.Store(id="s-method",data="hybrid"),
-        dcc.Store(id="s-pex",data=-1),
         dcc.Interval(id="iv",interval=7000,n_intervals=0),
 
         # ── APP SHELL ─────────────────────────────────────────────────────
@@ -296,20 +300,17 @@ def _layout():
             # LOAD TAB
             html.Div([
                 html.Div([
-                    html.Div("✨ Quick start — click a topic to load papers automatically",className="ex-label"),
-                    html.Div(ex_btns,className="ex-grid"),
-                ],className="ex-section",style={"marginBottom":"24px"}),
-                html.Div([
                     html.Div("Load papers from arXiv",className="card-h"),
-                    html.P("Or search any custom topic — we fetch real papers and build your knowledge base.",style={"fontSize":"13px","color":"var(--mt)","marginBottom":"12px","lineHeight":"1.6"}),
                     html.Label("Search topic",className="fl"),
-                    dcc.Input(id="ingest-q",type="text",placeholder="e.g. survey large language models transformer",className="inp"),
+                    html.Div(chips,className="chips-wrap"),
+                    dcc.Input(id="ingest-q",type="text",placeholder="e.g. survey large language models transformer",className="inp",style={"marginTop":"8px"}),
                     html.Div([
                         html.Div([html.Label("Number of papers",className="fl",style={"marginTop":"12px"}),dcc.Slider(id="n-papers",min=1,max=10,step=1,value=5,marks={i:str(i) for i in range(1,11)},tooltip={"placement":"bottom"})],style={"flex":"1"}),
                         html.Div([html.Label("Text splitting",className="fl",style={"marginTop":"12px"}),dcc.Dropdown(id="chunk-strat",options=[{"label":"Sentence Window (recommended)","value":"sentence_window"},{"label":"Fixed-size + overlap","value":"fixed"},{"label":"Semantic — paragraph-aware","value":"semantic"}],value="sentence_window",clearable=False,style={"fontSize":"13px"})],style={"flex":"1","marginLeft":"20px"}),
                     ],style={"display":"flex","alignItems":"flex-end","marginTop":"4px"}),
                     html.Div([html.Button("🔍  Fetch & Index",id="fetch-btn",className="btn btn-p"),html.Button("🗑️  Clear all",id="clear-btn",className="btn btn-d")],className="brow"),
-                    dcc.Loading(html.Div(id="ingest-status"),type="circle",color="var(--pr)"),
+                    html.Div(id="ingest-loading-banner",style={"display":"none","marginTop":"12px"}),
+                    html.Div(id="ingest-status"),
                 ],className="card"),
                 html.Div([html.Div("Indexed papers",className="card-h"),html.Div(id="papers-table")],className="card"),
             ],id="div-load",className="page",style={"display":"flex","flexDirection":"column","alignItems":"center"}),
@@ -318,37 +319,21 @@ def _layout():
             html.Div([
                 html.Div([
                     html.Div("🔬 research-rag-bench",className="sh-logo"),
-                    html.Div(id="steps-out"),
                     html.Div([
                         dcc.Input(id="q-input",type="text",debounce=False,n_submit=0,placeholder="Ask anything about your indexed papers…",className="search-box"),
                         html.Button("Ask →",id="q-btn",className="search-ask-btn",n_clicks=0),
                     ],className="search-box-wrap"),
                     html.Div("Press Enter or click Ask →",className="search-hint"),
+                    html.Div(id="ask-loading-banner",style={"display":"none","marginBottom":"8px"}),
                     html.Div([
                         html.Div([html.Div("Search method",className="ctrl-lbl"),html.Div(mc_btns,className="mc-row"),dcc.RadioItems(id="q-method",value="hybrid",options=[{"label":k,"value":k} for k in ["bm25","vector","hybrid"]],style={"display":"none"})],className="ctrl-card"),
                         html.Div([html.Div("Number of results",className="ctrl-lbl"),dcc.Slider(id="q-k",min=1,max=10,step=1,value=5,marks={i:str(i) for i in [1,3,5,7,10]},tooltip={"placement":"bottom"}),html.Div(style={"height":"10px"}),html.Div("Generator model",className="ctrl-lbl"),dcc.Dropdown(id="q-model",options=gen_opts,value=DEFAULT_MODEL,clearable=False,style={"fontSize":"13px"}),html.Div(id="model-tip")],className="ctrl-card"),
                     ],className="expert-panel",id="expert-panel",style={"display":"grid","gridTemplateColumns":"1fr 1fr","gap":"14px","width":"100%","maxWidth":"900px","margin":"16px auto 14px"}),
                 ],className="search-hero",id="search-hero"),
-                html.Div(id="ask-loading-banner",style={"width":"100%","maxWidth":"900px","display":"none"}),
                 html.Div(id="answer-out",style={"width":"100%","display":"flex","flexDirection":"column","alignItems":"center"}),
             ],id="div-ask",style={"width":"100%","display":"none","flexDirection":"column","alignItems":"center"}),
 
         ],id="div-app",style={"width":"100%"}),
-
-        # ── MODAL ─────────────────────────────────────────────────────────
-        html.Div([
-            html.Div([
-                html.Div("",id="m-icon",className="m-icon"),
-                html.Div("",id="m-title",className="m-title"),
-                html.Div("",id="m-body",className="m-body"),
-                html.Div("",id="m-q",className="m-q"),
-                html.Div(id="m-loading",style={"display":"none"}),
-                html.Div([
-                    html.Button("📥 Yes, load papers",id="modal-yes",n_clicks=0,className="btn btn-p",style={"flex":"1","justifyContent":"center"}),
-                    html.Button("✏️ I'll type my own",id="modal-no",n_clicks=0,className="btn btn-g",style={"flex":"1","justifyContent":"center"}),
-                ],className="m-btns",id="m-btns"),
-            ],className="modal-box"),
-        ],id="modal-overlay",className="modal-overlay",style={"display":"none"}),
 
     ],style={"width":"100%"})
 
@@ -369,10 +354,6 @@ def create_dash_app(server):
     # hero compact
     @app.callback(Output("search-hero","className"),Input("s-step","data"))
     def hero_class(step): return "search-hero compact" if (step or 0)>=2 else "search-hero"
-
-    # step bar
-    @app.callback(Output("steps-out","children"),Input("s-step","data"))
-    def upd_steps(step): return _steps_bar(step or 0)
 
     # stats
     @app.callback(Output("stats-txt","children"),Input("iv","n_intervals"))
@@ -407,93 +388,28 @@ def create_dash_app(server):
         from app.models.generator import DEFAULT_MODEL
         return _model_tip(mid or DEFAULT_MODEL)
 
-    # example click → fill modal and show it
+    # chip click → fill search input
+    @app.callback(Output("ingest-q","value"),Input({"type":"chip","index":ALL},"n_clicks"),prevent_initial_call=True)
+    def fill_from_chip(_):
+        if not ctx.triggered_id: return dash.no_update
+        return EXAMPLES[ctx.triggered_id["index"]]["arxiv"]
+
+    # ingest loading banner
     @app.callback(
-        Output("modal-overlay","style"),
-        Output("m-icon","children"),Output("m-title","children"),Output("m-body","children"),Output("m-q","children"),
-        Output("m-loading","style"),Output("m-btns","style"),
-        Output("s-pex","data"),
-        Input({"type":"exbtn","index":ALL},"n_clicks"),
-        prevent_initial_call=True)
-    def open_modal(clicks):
-        if not any(c and c>0 for c in clicks):
-            return [dash.no_update]*8
-        idx=next(i for i,c in enumerate(clicks) if c and c>0)
-        e=EXAMPLES[idx]
-        return (
-            {"display":"flex"},
-            e["icon"],"Load this example?",
-            "We'll fetch relevant papers from arXiv (~15 s), then pre-fill the question. Just press Ask → when ready.",
-            f'"{e["q"]}"',
-            {"display":"none"},          # loading banner hidden initially
-            {"display":"flex","gap":"8px"},  # buttons visible
-            idx,
-        )
+        Output("ingest-loading-banner","style"),Output("ingest-loading-banner","children"),
+        Input("fetch-btn","n_clicks"),State("ingest-q","value"),prevent_initial_call=True)
+    def show_ingest_loading(_,q):
+        if not q or not q.strip(): return {"display":"none"},html.Div()
+        return {"display":"block","marginTop":"12px"}, _loading_banner("🔍 Fetching papers from arXiv…")
 
-    # modal-yes → show spinner inside modal, fetch, then close
-    @app.callback(
-        Output("m-loading","style",        allow_duplicate=True),
-        Output("m-loading","children",     allow_duplicate=True),
-        Output("m-btns","style",           allow_duplicate=True),
-        Output("ingest-status","children", allow_duplicate=True),
-        Output("papers-table","children",  allow_duplicate=True),
-        Output("q-input","value"),
-        Output("modal-overlay","style",    allow_duplicate=True),
-        Output("s-step","data",            allow_duplicate=True),
-        Output("s-tab","data",             allow_duplicate=True),
-        Output("div-ask","style",          allow_duplicate=True),
-        Output("div-load","style",         allow_duplicate=True),
-        Output("tab-ask","className",      allow_duplicate=True),
-        Output("tab-load","className",     allow_duplicate=True),
-        Input("modal-yes","n_clicks"),
-        State("s-pex","data"),
-        prevent_initial_call=True)
-    def load_example(n, idx):
-        blank=[dash.no_update]*13
-        if not n or idx is None or idx<0: return blank
-        # show spinner, hide buttons immediately (runs synchronously before fetch)
-        from app.store import store
-        from app.utils.arxiv_loader import fetch_arxiv_papers
-        from app.utils.chunker import chunk_text
-        from app.models.embedder import embed_texts
-        from app.models.retriever import build_faiss_index,build_bm25_index
-        e=EXAMPLES[idx]
-        loading_visible={"display":"block","marginBottom":"12px"}
-        loading_content=_loading_banner(f"Fetching papers for: {e['q'][:48]}…")
-        btns_hidden={"display":"none"}
-        try:
-            papers=fetch_arxiv_papers(e["arxiv"],max_results=6)
-            new_chunks=[]
-            for p in papers:
-                if any(d["id"]==p["id"] for d in store.documents): continue
-                store.add_document(p)
-                for i,ct in enumerate(chunk_text(f"{p['title']}.\n\n{p['abstract']}","sentence_window")):
-                    new_chunks.append({"id":f"{p['id']}_chunk_{i}","doc_id":p["id"],"title":p["title"],"text":ct,"chunk_idx":i,"source":p["url"]})
-            store.add_chunks(new_chunks)
-            if store.chunk_texts:
-                embs=embed_texts(store.chunk_texts);store.set_embeddings(embs)
-                store.faiss_index=build_faiss_index(embs);store.bm25_index=build_bm25_index(store.chunk_texts)
-            store.save();s=store.stats()
-            status=html.Span(f"✅ Loaded {len(papers)} papers → {len(new_chunks)} new chunks. Total: {s['n_documents']} docs, {s['n_chunks']} chunks.",className="ok")
-            ask_s={"width":"100%","display":"flex","flexDirection":"column","alignItems":"center"}
-            load_s={"display":"none"}
-            return (loading_visible,loading_content,btns_hidden,status,_papers_table(store.documents),e["q"],{"display":"none"},1,"ask",ask_s,load_s,"tab-btn on","tab-btn")
-        except Exception as exc:
-            err=html.Span(f"❌ {exc}",className="er")
-            return ({"display":"none"},html.Div(),{"display":"flex","gap":"8px"},err,*([dash.no_update]*9))
-
-    # modal-no → close
-    @app.callback(Output("modal-overlay","style",allow_duplicate=True),Output("s-pex","data",allow_duplicate=True),Input("modal-no","n_clicks"),prevent_initial_call=True)
-    def close_modal(_): return {"display":"none"},-1
-
-    # ask (button or Enter)  — shows loading banner, then answer
+    # ask loading inline below hint
     @app.callback(
         Output("ask-loading-banner","style"),Output("ask-loading-banner","children"),
         Input("q-btn","n_clicks"),Input("q-input","n_submit"),
         State("q-input","value"),prevent_initial_call=True)
     def show_ask_loading(_,ns,q):
         if not q or not q.strip(): return {"display":"none"},html.Div()
-        return {"width":"100%","maxWidth":"900px","display":"block"}, _loading_banner("Searching papers and generating answer…")
+        return {"display":"block","marginBottom":"8px"}, _loading_banner("🔍 Searching papers and generating answer…")
 
     @app.callback(
         Output("answer-out","children"),Output("ask-loading-banner","style",allow_duplicate=True),
@@ -508,7 +424,7 @@ def create_dash_app(server):
         from app.utils.metrics import evaluate_retrieval,answer_faithfulness
         hide_banner={"display":"none"}
         if not question or not question.strip():
-            return html.Span("⚠️ Please enter a question.",className="wn"),hide_banner,dash.no_update
+            return html.Span("⚠️ Please enter a question.",className="wn"),{"display":"none"},dash.no_update
         if not store.is_indexed:
             return html.Div([html.Span("⚠️ No papers loaded yet. ",className="wn",style={"fontWeight":"700"}),html.Span("Go to Load tab and click an example or search a topic.",style={"color":"var(--mt)","fontSize":"13px"})]),hide_banner,dash.no_update
         mid=model_id or DEFAULT_MODEL
@@ -549,20 +465,25 @@ def create_dash_app(server):
         ],className="answer-wrap"),hide_banner,2
 
     # ingest
-    @app.callback(Output("ingest-status","children"),Output("papers-table","children"),Input("fetch-btn","n_clicks"),Input("clear-btn","n_clicks"),State("ingest-q","value"),State("n-papers","value"),State("chunk-strat","value"),prevent_initial_call=True)
+    @app.callback(
+        Output("ingest-status","children"),Output("papers-table","children"),
+        Output("ingest-loading-banner","style",allow_duplicate=True),
+        Input("fetch-btn","n_clicks"),Input("clear-btn","n_clicks"),
+        State("ingest-q","value"),State("n-papers","value"),State("chunk-strat","value"),prevent_initial_call=True)
     def handle_ingest(_f,_c,query,n,strat):
         from app.store import store
         from app.utils.arxiv_loader import fetch_arxiv_papers
         from app.utils.chunker import chunk_text
         from app.models.embedder import embed_texts
         from app.models.retriever import build_faiss_index,build_bm25_index
+        hide={"display":"none"}
         if ctx.triggered_id=="clear-btn":
-            store.clear();return html.Span("✅ Index cleared.",className="ok"),html.Div()
+            store.clear();return html.Span("✅ Index cleared.",className="ok"),html.Div(),hide
         if not query or not query.strip():
-            return html.Span("⚠️ Please enter a topic.",className="wn"),dash.no_update
+            return html.Span("⚠️ Please enter a topic.",className="wn"),dash.no_update,hide
         try:
             papers=fetch_arxiv_papers(query.strip(),max_results=n or 5)
-            if not papers: return html.Span("❌ No papers found.",className="er"),dash.no_update
+            if not papers: return html.Span("❌ No papers found.",className="er"),dash.no_update,hide
             new_chunks=[]
             for p in papers:
                 if any(d["id"]==p["id"] for d in store.documents): continue
@@ -574,8 +495,8 @@ def create_dash_app(server):
                 embs=embed_texts(store.chunk_texts);store.set_embeddings(embs)
                 store.faiss_index=build_faiss_index(embs);store.bm25_index=build_bm25_index(store.chunk_texts)
             store.save();s=store.stats()
-            return html.Span(f"✅ {len(papers)} paper(s) → {len(new_chunks)} new chunks. Total: {s['n_documents']} docs, {s['n_chunks']} chunks.",className="ok"),_papers_table(store.documents)
+            return html.Span(f"✅ {len(papers)} paper(s) → {len(new_chunks)} new chunks. Total: {s['n_documents']} docs, {s['n_chunks']} chunks.",className="ok"),_papers_table(store.documents),hide
         except Exception as exc:
-            return html.Span(f"❌ {exc}",className="er"),dash.no_update
+            return html.Span(f"❌ {exc}",className="er"),dash.no_update,hide
 
     return app
