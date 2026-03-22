@@ -138,7 +138,7 @@ button,input,textarea,select{font-family:inherit}
 .mc-d{font-size:10px;color:var(--mt);line-height:1.35}
 
 /* ── ANSWER ── */
-.answer-wrap{width:100%;max-width:900px;margin-top:24px}
+.answer-wrap{width:100%;max-width:900px;margin:24px auto 0}
 .a-card{background:var(--sf);border:1px solid var(--bd);border-left:3px solid var(--pr);border-radius:0 var(--r) var(--r) 0;padding:22px;margin-bottom:14px}
 .a-lbl{font-size:10px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
 .a-txt{font-size:15px;line-height:1.85;color:var(--tx)!important}
@@ -365,7 +365,7 @@ def _layout():
                 # Ask loading banner — shown while waiting for answer
                 html.Div(id="ask-loading-banner",style={"width":"100%","maxWidth":"900px","display":"none"}),
                 # Answer output
-                html.Div(id="answer-out",style={"width":"100%"}),
+                html.Div(id="answer-out",style={"width":"100%","display":"flex","flexDirection":"column","alignItems":"center"}),
             ],id="div-ask",style={"width":"100%","display":"none","flexDirection":"column","alignItems":"center"}),
 
             # LOAD TAB
