@@ -170,12 +170,21 @@ button,input,textarea,select{font-family:inherit}
 # DATA
 # ─────────────────────────────────────────────────────────────────────────────
 EXAMPLES = [
-    {"icon":"💬","persona":"Curious beginner",   "q":"What is a large language model?",                           "arxiv":"survey large language models GPT transformer overview",          "tag":"Great start"},
-    {"icon":"🔍","persona":"Everyday user",       "q":"How does AI understand what I mean when I search?",         "arxiv":"dense retrieval semantic search neural information retrieval",    "tag":"Popular"},
-    {"icon":"🤖","persona":"Tech enthusiast",     "q":"How does the attention mechanism work?",                    "arxiv":"attention mechanism transformer self-attention BERT",             "tag":"Core concept"},
-    {"icon":"📊","persona":"Data scientist",      "q":"How is retrieval quality measured in RAG systems?",         "arxiv":"RAG evaluation faithfulness hallucination context grounding",      "tag":"Advanced"},
-    {"icon":"🔀","persona":"ML engineer",         "q":"Why does hybrid search beat BM25 or vector search alone?",  "arxiv":"hybrid retrieval BM25 dense reciprocal rank fusion evaluation",   "tag":"What this app shows"},
-    {"icon":"🏥","persona":"Domain specialist",   "q":"Can AI answer medical questions from research papers?",     "arxiv":"biomedical NLP clinical question answering PubMed language model",  "tag":"Real-world"},
+    {
+        "icon":"📊","label":"Data Science",
+        "arxiv":"machine learning model evaluation deep learning neural networks",
+        "questions":["How do neural networks learn from data?","What metrics are used to evaluate ML models?"],
+    },
+    {
+        "icon":"📣","label":"Marketing",
+        "arxiv":"digital marketing consumer behavior NLP sentiment analysis",
+        "questions":["How does sentiment analysis improve marketing strategy?","What AI techniques help with customer segmentation?"],
+    },
+    {
+        "icon":"🏥","label":"Medical",
+        "arxiv":"clinical NLP biomedical text mining disease prediction",
+        "questions":["How is AI used in medical diagnosis from clinical text?","What are the challenges of NLP in healthcare records?"],
+    },
 ]
 METHODS = {
     "bm25":   {"label":"BM25",         "color":"var(--c1)", "desc":"Keyword matching — fast, precise on exact terms."},
@@ -276,7 +285,7 @@ def _area(qs,agg,t):
 def _layout():
     from app.models.generator import MODEL_OPTIONS, DEFAULT_MODEL
     gen_opts=[{"label":v["label"],"value":k} for k,v in MODEL_OPTIONS.items()]
-    chips=[html.Button([html.Span(e["icon"]),html.Span(" "+e["q"][:42]+("…" if len(e["q"])>42 else ""))],id={"type":"chip","index":i},className="chip",n_clicks=0) for i,e in enumerate(EXAMPLES)]
+    chips=[html.Button([html.Span(e["icon"]),html.Span("  "+e["label"])],id={"type":"chip","index":i},className="chip",n_clicks=0) for i,e in enumerate(EXAMPLES)]
     mc_btns=[html.Button([html.Div(METHODS[m]["label"],className="mc-n"),html.Div(METHODS[m]["desc"],className="mc-d")],id=f"mc-{m}",className="mc on" if m=="hybrid" else "mc",n_clicks=0) for m in ["bm25","vector","hybrid"]]
 
     return html.Div([
@@ -284,6 +293,7 @@ def _layout():
         dcc.Store(id="s-tab",data="load",storage_type="session"),
         dcc.Store(id="s-step",data=0,storage_type="session"),
         dcc.Store(id="s-method",data="hybrid"),
+        dcc.Store(id="s-topic",data=-1),
         dcc.Interval(id="iv",interval=7000,n_intervals=0),
 
         # ── APP SHELL ─────────────────────────────────────────────────────
@@ -302,8 +312,8 @@ def _layout():
                 html.Div([
                     html.Div("Load papers from arXiv",className="card-h"),
                     html.Label("Search topic",className="fl"),
-                    html.Div(chips,className="chips-wrap"),
-                    dcc.Input(id="ingest-q",type="text",placeholder="e.g. survey large language models transformer",className="inp",style={"marginTop":"8px"}),
+                    dcc.Input(id="ingest-q",type="text",placeholder="e.g. machine learning model evaluation",className="inp"),
+                    html.Div(chips,className="chips-wrap",style={"marginTop":"8px"}),
                     html.Div([
                         html.Div([html.Label("Number of papers",className="fl",style={"marginTop":"12px"}),dcc.Slider(id="n-papers",min=1,max=10,step=1,value=5,marks={i:str(i) for i in range(1,11)},tooltip={"placement":"bottom"})],style={"flex":"1"}),
                         html.Div([html.Label("Text splitting",className="fl",style={"marginTop":"12px"}),dcc.Dropdown(id="chunk-strat",options=[{"label":"Sentence Window (recommended)","value":"sentence_window"},{"label":"Fixed-size + overlap","value":"fixed"},{"label":"Semantic — paragraph-aware","value":"semantic"}],value="sentence_window",clearable=False,style={"fontSize":"13px"})],style={"flex":"1","marginLeft":"20px"}),
@@ -324,6 +334,7 @@ def _layout():
                         html.Button("Ask →",id="q-btn",className="search-ask-btn",n_clicks=0),
                     ],className="search-box-wrap"),
                     html.Div("Press Enter or click Ask →",className="search-hint"),
+                    html.Div(id="q-chips",className="chips-wrap",style={"marginTop":"8px"}),
                     html.Div(id="ask-loading-banner",style={"display":"none","marginBottom":"8px"}),
                     html.Div([
                         html.Div([html.Div("Search method",className="ctrl-lbl"),html.Div(mc_btns,className="mc-row"),dcc.RadioItems(id="q-method",value="hybrid",options=[{"label":k,"value":k} for k in ["bm25","vector","hybrid"]],style={"display":"none"})],className="ctrl-card"),
@@ -388,11 +399,26 @@ def create_dash_app(server):
         from app.models.generator import DEFAULT_MODEL
         return _model_tip(mid or DEFAULT_MODEL)
 
-    # chip click → fill search input
-    @app.callback(Output("ingest-q","value"),Input({"type":"chip","index":ALL},"n_clicks"),prevent_initial_call=True)
+    # topic chip click → fill search input + store selected topic
+    @app.callback(Output("ingest-q","value"),Output("s-topic","data"),Input({"type":"chip","index":ALL},"n_clicks"),prevent_initial_call=True)
     def fill_from_chip(_):
-        if not ctx.triggered_id: return dash.no_update
-        return EXAMPLES[ctx.triggered_id["index"]]["arxiv"]
+        if not ctx.triggered_id: return dash.no_update,dash.no_update
+        idx=ctx.triggered_id["index"]
+        return EXAMPLES[idx]["arxiv"],idx
+
+    # topic store → populate question chips in Ask tab
+    @app.callback(Output("q-chips","children"),Input("s-topic","data"))
+    def update_q_chips(topic_idx):
+        if topic_idx is None or topic_idx<0: return []
+        e=EXAMPLES[topic_idx]
+        return [html.Button(q,id={"type":"qchip","index":i},className="chip",n_clicks=0) for i,q in enumerate(e["questions"])]
+
+    # question chip click → fill question input
+    @app.callback(Output("q-input","value"),Input({"type":"qchip","index":ALL},"n_clicks"),State("s-topic","data"),prevent_initial_call=True)
+    def fill_from_qchip(_,topic_idx):
+        if not ctx.triggered_id or topic_idx is None or topic_idx<0: return dash.no_update
+        q_idx=ctx.triggered_id["index"]
+        return EXAMPLES[topic_idx]["questions"][q_idx]
 
     # ingest loading banner
     @app.callback(
