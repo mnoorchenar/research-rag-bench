@@ -38,20 +38,37 @@ def get_generator(model_id: str = DEFAULT_MODEL):
     return _pipes[model_id], MODEL_OPTIONS[model_id]
 
 
+def _is_title_string(s: str) -> bool:
+    """Return True if the string looks like a paper title rather than an informative sentence.
+    Titles are short, lack verbs, and often contain colons or all-title-case words."""
+    if len(s) < 40:
+        return True
+    words = s.split()
+    # if more than 70% of words are title-cased and no lowercase function words appear, it's a title
+    title_cased = sum(1 for w in words if w and w[0].isupper() and w not in ("The", "A", "An"))
+    lowercase_content = sum(1 for w in words if w.islower() and len(w) > 3)
+    if lowercase_content < 2:
+        return True
+    # sentences ending with a paper title pattern (word: word word word)
+    if re.match(r"^[A-Z][^a-z]{0,5}[A-Z].*:.*[A-Z]", s) and "." not in s[10:]:
+        return True
+    return False
+
+
 def _distil_context(question: str, context: str, top_n: int = 6) -> str:
-    """Extract the top_n most query-relevant sentences from context using embedding similarity.
-    This gives Flan-T5 a focused, clean input instead of dense multi-paragraph blobs."""
+    """Extract the top_n most query-relevant informative sentences using embedding similarity.
+    Filters out paper title strings so Flan-T5 receives only content sentences."""
     from app.models.embedder import embed_texts, embed_query
 
-    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", context) if len(s.strip()) > 25]
+    raw = [s.strip() for s in re.split(r"(?<=[.!?])\s+", context) if len(s.strip()) > 25]
+    sentences = [s for s in raw if not _is_title_string(s)]
     if not sentences:
-        return context
+        sentences = raw  # fall back to all if filtering removed everything
 
     q_emb = embed_query(question)
     s_embs = embed_texts(sentences)
     scores = s_embs @ q_emb
     top_idx = np.argsort(scores)[::-1][:top_n]
-    # preserve original reading order so Flan-T5 sees coherent flow
     top_idx_sorted = sorted(top_idx)
     return " ".join(sentences[i] for i in top_idx_sorted)
 
