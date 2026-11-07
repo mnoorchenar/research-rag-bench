@@ -203,3 +203,13 @@ def test_no_papers_found_is_a_404(client, monkeypatch):
 
 def test_bad_max_results_is_rejected(client):
     assert client.post("/api/fetch-arxiv", json={"query": "x", "max_results": "many"}).status_code == 400
+
+
+# ── Dashboard ────────────────────────────────────────────────────────────────
+
+def test_passage_colour_marks_the_method_not_the_score():
+    from app.dashboards.eval_dashboard import _chunk
+
+    low = _chunk({"rank": 1, "score": 0.03, "chunk": {"text": "a", "title": "t"}}, color="#123456")
+    high = _chunk({"rank": 1, "score": 1.0, "chunk": {"text": "a", "title": "t"}}, color="#123456")
+    assert low.style["borderLeft"] == high.style["borderLeft"] == "3px solid #123456"

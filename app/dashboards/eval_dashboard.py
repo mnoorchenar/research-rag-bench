@@ -212,10 +212,12 @@ def _metric(label, value, color):
         bar,
     ], className="mp")
 
-def _chunk(r, compact=False):
+def _chunk(r, compact=False, color=None):
+    """One retrieved passage. Scores are not comparable across methods (BM25 is scaled to the
+    top hit, vector is a cosine, hybrid is an RRF score), so colour marks the method, not quality."""
     ch = r["chunk"]
     txt = (ch["text"][:200]+"…") if compact and len(ch["text"])>200 else ch["text"]
-    sc = r["score"]; col = _sc(sc)
+    sc = r["score"]; col = color or _sc(sc)
     return html.Div([
         html.Div([html.Span(f"#{r['rank']}",className="ci-r"),html.Span(ch.get("title","")[:70],className="ci-t"),html.Span(f"↑ {sc:.4f}",className="ci-s",style={"color":col})],className="ci-h"),
         html.P(txt,className="ci-p",style={"color":"var(--tx)"}),
@@ -261,14 +263,6 @@ def _cc(t):
 def _base(c,h=260,title=""):
     return dict(plot_bgcolor=c["bg"],paper_bgcolor=c["paper"],height=h,font=dict(family="Inter,sans-serif",size=11,color=c["font"]),margin=dict(l=12,r=12,t=38 if title else 12,b=12),title=dict(text=title,font=dict(size=12,color=c["font"]),x=0.02) if title else None,legend=dict(orientation="h",yanchor="bottom",y=1.02,xanchor="right",x=1,font=dict(size=11)),xaxis=dict(showgrid=False,color=c["txt"],tickfont=dict(size=11)),yaxis=dict(gridcolor=c["grid"],color=c["txt"],tickfont=dict(size=11)))
 
-def _radar(m,t):
-    c=_cc(t);cats=["Relevance","Diversity","Avg"];fig=go.Figure()
-    for k in ["bm25","vector","hybrid"]:
-        v=[m.get(k,{}).get("context_relevance",0),m.get(k,{}).get("diversity",0),m.get(k,{}).get("avg_score",0)]
-        fig.add_trace(go.Scatterpolar(r=v+[v[0]],theta=cats+[cats[0]],name=METHODS[k]["label"],fill="toself",fillcolor=c[k],opacity=0.14,line=dict(color=c[k],width=2.5),marker=dict(size=7,color=c[k])))
-    fig.update_layout(polar=dict(bgcolor=c["bg"],radialaxis=dict(visible=True,range=[0,1],tickfont=dict(size=9,color=c["txt"]),gridcolor=c["grid"],linecolor=c["grid"]),angularaxis=dict(tickfont=dict(size=12,color=c["font"]),linecolor=c["grid"],gridcolor=c["grid"])),paper_bgcolor=c["paper"],height=240,font=dict(family="Inter,sans-serif",size=11,color=c["font"]),margin=dict(l=12,r=12,t=12,b=12),legend=dict(orientation="h",yanchor="bottom",y=1.04,xanchor="right",x=1,font=dict(size=11)))
-    return fig
-
 def _bar(m,t):
     c=_cc(t);fig=go.Figure()
     for k in ["bm25","vector","hybrid"]:
@@ -297,7 +291,7 @@ def _layout():
         dcc.Store(id="s-step",data=0,storage_type="session"),
         dcc.Store(id="s-method",data="hybrid"),
         dcc.Store(id="s-topic",data=-1),
-        dcc.Interval(id="iv",interval=7000,n_intervals=0),
+        dcc.Interval(id="iv",interval=3000,n_intervals=0),
 
         # ── APP SHELL ─────────────────────────────────────────────────────
         html.Div([
@@ -476,7 +470,7 @@ def create_dash_app(server):
         cols=[html.Div([
             html.Div([html.Span("●",style={"color":METHODS[m]["color"],"fontSize":"16px","marginRight":"6px"}),html.Span(METHODS[m]["label"],style={"fontWeight":"800","fontSize":"13px"})],style={"display":"flex","alignItems":"center","marginBottom":"7px"}),
             html.Div(f"Relevance: {all_m[m]['context_relevance']}  ·  Diversity: {all_m[m]['diversity']}",style={"fontSize":"12px","color":"var(--mt)","marginBottom":"10px"}),
-            html.Div([_chunk(r,compact=True) for r in all_r[m]])
+            html.Div([_chunk(r,compact=True,color=METHODS[m]["color"]) for r in all_r[m]])
         ],className="card",style={"flex":"1","minWidth":"0","margin":"0 4px"}) for m in ["bm25","vector","hybrid"]]
         return html.Div([
             # Answer
@@ -484,10 +478,7 @@ def create_dash_app(server):
             # Metrics
             html.Div([_metric("Relevance",mt["context_relevance"],"var(--pr)"),_metric("Faithfulness",round(mt["faithfulness"],3),"var(--ok)"),_metric("Diversity",mt["diversity"],"var(--wn)"),_metric("Chunks",mt["n_retrieved"],"var(--mt)")],className="mrow"),
             # Charts
-            html.Div([
-                html.Div([dcc.Graph(figure=_radar(all_m,t),config={"displayModeBar":False})],style={"flex":"1"}),
-                html.Div([dcc.Graph(figure=_bar(all_m,t),config={"displayModeBar":False})],style={"flex":"1"}),
-            ],style={"display":"flex","gap":"14px","width":"100%","marginBottom":"14px"}),
+            html.Div([dcc.Graph(figure=_bar(all_m,t),config={"displayModeBar":False})],style={"width":"100%","marginBottom":"14px"}),
             # 3-column passages
             html.Div([html.Span("Retrieved passages — all 3 methods",style={"fontWeight":"700","fontSize":"13px","color":"var(--tx)"})],className="c-hdr",style={"marginBottom":"10px"}),
             html.Div(cols,style={"display":"flex","gap":"0","width":"100%"}),

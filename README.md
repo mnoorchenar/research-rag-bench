@@ -30,11 +30,13 @@ research-rag-bench runs BM25, dense vector and hybrid search on the same arXiv p
 
 [![Features](https://img.shields.io/badge/Features-334155?style=flat-square)](#features) [![How it works](https://img.shields.io/badge/How_it_works-334155?style=flat-square)](#how-it-works) [![Results](https://img.shields.io/badge/Results-334155?style=flat-square)](#results) [![Documentation](https://img.shields.io/badge/Documentation-334155?style=flat-square)](#documentation) [![Author](https://img.shields.io/badge/Author-334155?style=flat-square)](#author)
 
+<img src="docs/app-demo.gif" alt="Demo: loading five arXiv papers on data science, asking how neural networks learn from data, and getting an answer with metrics, a chart and the passages found by BM25, dense vector and hybrid search. Waiting time is shortened." width="100%"/>
+
 <table>
   <tr>
     <td align="center"><h3>96%</h3>of held-out queries found their paper in the top 5 with hybrid search</td>
     <td align="center"><h3>3</h3>retrieval methods compared side by side on every question</td>
-    <td align="center"><h3>41</h3>automated tests, none needing network or a model download</td>
+    <td align="center"><h3>42</h3>automated tests, none needing network or a model download</td>
     <td align="center"><h3>$0</h3>to run, with local models on a free CPU Space</td>
   </tr>
 </table>
@@ -50,7 +52,7 @@ research-rag-bench runs BM25, dense vector and hybrid search on the same arXiv p
   </tr>
   <tr>
     <td><b>Real arXiv papers</b><br>Search any topic and index up to 10 papers in one click, using sentence-window, fixed-size or paragraph-aware chunking.</td>
-    <td><b>Live metrics</b><br>Context relevance, diversity and answer overlap are computed for each method, with radar and bar charts.</td>
+    <td><b>Live metrics</b><br>Context relevance and diversity are computed for each method and charted, and the answer's word overlap with its sources is shown.</td>
   </tr>
   <tr>
     <td><b>Local answers</b><br>A Flan-T5 model (base, large or XL) runs on the server's CPU, so there is no API key and no rate limit.</td>
