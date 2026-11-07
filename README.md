@@ -3,272 +3,221 @@ title: research-rag-bench
 colorFrom: blue
 colorTo: indigo
 sdk: docker
+app_port: 7860
+license: mit
 ---
+
+<!-- Generated from .github/README.md by scripts/sync_readme.py. Edit that file instead. -->
 
 <div align="center">
 
-<h1>🔬 research-rag-bench</h1>
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&color=6366f1&center=true&vCenter=true&width=700&lines=Hybrid+Search+%C2%B7+Dense+%2B+Sparse+Retrieval+over+arXiv;Compare+BM25+%C2%B7+Vector+%C2%B7+Hybrid+RRF+Fusion+live;Built+with+FAISS+%C2%B7+sentence-transformers+%C2%B7+Flan-T5+%C2%B7+Dash" alt="Typing SVG"/>
+# research-rag-bench
 
-<br/>
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=20&duration=2800&pause=900&color=6366F1&center=true&vCenter=true&width=720&lines=Compare%20BM25%2C%20vector%20and%20hybrid%20search%20live;Real%20arXiv%20papers%2C%20indexed%20in%20seconds;Answers%20from%20a%20local%20Flan-T5%2C%20no%20API%20key" alt="Compare BM25, vector and hybrid search live"/>
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3b82f6?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-3.x-4f46e5?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-3b82f6?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Status](https://img.shields.io/badge/Status-Active-22c55e?style=for-the-badge)](#)
+[![Live demo](https://img.shields.io/badge/%E2%96%B6_Live_demo-Try_it_now-ffcc00?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/spaces/mnoorchenar/research-rag-bench)
+[![Author](https://img.shields.io/badge/Author-Mohammad_Noorchenarboo-0f766e?style=for-the-badge)](https://mnoorchenar.github.io/)
 
-<br/>
+[![Python](https://img.shields.io/badge/Python-3.10-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Dash](https://img.shields.io/badge/Dash-2.17-008DE4?style=flat-square&logo=plotly&logoColor=white)](https://dash.plotly.com/)
+[![FAISS](https://img.shields.io/badge/FAISS-1.8-0467DF?style=flat-square)](https://github.com/facebookresearch/faiss)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
-[![Live Demo](https://img.shields.io/badge/%E2%96%B6_Live_Demo-Hugging_Face_Space-ffcc00?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/spaces/mnoorchenar/research-rag-bench)
-[![Source Code](https://img.shields.io/badge/Source_Code-GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mnoorchenar/research-rag-bench)
+**Most RAG demos show one retriever and ask you to trust it.**<br>
+research-rag-bench runs BM25, dense vector and hybrid search on the same arXiv papers, side by side, so you can see which one finds the right passages.
 
-<br/>
-
-**🔬 research-rag-bench** — A full-stack RAG evaluation platform that fetches arXiv research papers on any topic, indexes them using three retrieval strategies (BM25, dense vector, and Reciprocal Rank Fusion), and benchmarks retrieval quality live — showing exactly why hybrid search outperforms either method alone.
-
-<br/>
-
----
-
-</div>
-
-## Table of Contents
-
-- [Features](#-features)
-- [Architecture](#️-architecture)
-- [Getting Started](#-getting-started)
-- [Docker Deployment](#-docker-deployment)
-- [Dashboard Tabs](#-dashboard-tabs)
-- [ML Models](#-ml-models)
-- [Project Structure](#-project-structure)
-- [Author](#-author)
-- [Contributing](#-contributing)
-- [Disclaimer](#️-disclaimer)
-- [License](#-license)
-
----
-
-## ✨ Features
+[![Features](https://img.shields.io/badge/Features-334155?style=flat-square)](#features) [![How it works](https://img.shields.io/badge/How_it_works-334155?style=flat-square)](#how-it-works) [![Results](https://img.shields.io/badge/Results-334155?style=flat-square)](#results) [![Documentation](https://img.shields.io/badge/Documentation-334155?style=flat-square)](#documentation) [![Author](https://img.shields.io/badge/Author-334155?style=flat-square)](#author)
 
 <table>
   <tr>
-    <td>🔀 <b>Hybrid Retrieval</b></td>
-    <td>BM25 + dense FAISS search fused with Reciprocal Rank Fusion (k=60) — implemented from scratch, no black-box wrappers</td>
-  </tr>
-  <tr>
-    <td>📊 <b>Live Evaluation Metrics</b></td>
-    <td>Context relevance (embedding cosine), answer faithfulness (token overlap), and retrieval diversity computed on every query</td>
-  </tr>
-  <tr>
-    <td>📄 <b>arXiv Integration</b></td>
-    <td>Search and ingest real research papers in one click; choose from three chunking strategies (fixed, sentence-window, semantic)</td>
-  </tr>
-  <tr>
-    <td>⚖️ <b>Unified Ask & Compare</b></td>
-    <td>Every query automatically runs all three methods — answer, metrics, radar/bar charts, and 3-column passage comparison shown on one page</td>
-  </tr>
-  <tr>
-    <td>💡 <b>Domain Quick-Start</b></td>
-    <td>Pre-built topic chips (Data Science, Marketing, Medical) fill the search box in one click; contextual question chips in Ask tab adapt to the loaded domain</td>
-  </tr>
-  <tr>
-    <td>🐳 <b>Containerized Deployment</b></td>
-    <td>Docker-first architecture, cloud-ready and scalable</td>
+    <td align="center"><h3>96%</h3>of held-out queries found their paper in the top 5 with hybrid search</td>
+    <td align="center"><h3>3</h3>retrieval methods compared side by side on every question</td>
+    <td align="center"><h3>41</h3>automated tests, none needing network or a model download</td>
+    <td align="center"><h3>$0</h3>to run, with local models on a free CPU Space</td>
   </tr>
 </table>
 
----
+</div>
 
-## 🏗️ Architecture
+## Features
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                 research-rag-bench                      │
-│                                                         │
-│  ┌───────────┐    ┌───────────┐    ┌───────────────┐  │
-│  │  arXiv    │───▶│  Hybrid   │───▶│   Flask API   │  │
-│  │  Papers   │    │  RAG      │    │   Backend     │  │
-│  └───────────┘    │  Engine   │    └───────┬───────┘  │
-│                   │ BM25+FAISS│            │           │
-│                   │   +RRF    │   ┌────────▼────────┐  │
-│                   └───────────┘   │  Plotly Dash    │  │
-│                                   │   Dashboard     │  │
-│                                   └─────────────────┘  │
-└─────────────────────────────────────────────────────────┘
-```
+<table>
+  <tr>
+    <td width="50%"><b>Three retrievers, one page</b><br>Every question runs BM25, dense vector (FAISS) and hybrid search, and shows their passages, scores and metrics together.</td>
+    <td width="50%"><b>Hybrid search from scratch</b><br>Reciprocal Rank Fusion is about ten lines of code, with no retrieval framework hiding what happens.</td>
+  </tr>
+  <tr>
+    <td><b>Real arXiv papers</b><br>Search any topic and index up to 10 papers in one click, using sentence-window, fixed-size or paragraph-aware chunking.</td>
+    <td><b>Live metrics</b><br>Context relevance, diversity and answer overlap are computed for each method, with radar and bar charts.</td>
+  </tr>
+  <tr>
+    <td><b>Local answers</b><br>A Flan-T5 model (base, large or XL) runs on the server's CPU, so there is no API key and no rate limit.</td>
+    <td><b>Quick-start topics</b><br>One-click topic chips load papers for data science, marketing or medicine and suggest questions to ask.</td>
+  </tr>
+</table>
 
----
+## How it works
 
-## 🚀 Getting Started
+<img src="docs/how-it-works.svg" width="100%" alt="Flowchart: a topic is searched on arXiv, and the papers are chunked, embedded and stored in a FAISS and a BM25 index. A question is retrieved three ways: BM25, dense vector and hybrid RRF. The best six sentences go to a local Flan-T5 model for the answer, and all three methods are scored and compared on the page."/>
 
-### Prerequisites
+## Results
 
-- Python 3.10+
-- Docker & Docker Compose
-- Git
+Hybrid search found the source paper at least as often as either method alone. To test this without relying on the app's own metrics, two sentences were removed from each paper's abstract before indexing, and each removed sentence became a query for that paper.
 
-### Local Installation
+<img src="docs/results.svg" width="100%" alt="Bar chart: with 45 held-out sentence queries over 30 papers, hybrid search found the source paper at rank 1 for 0.82 of queries, BM25 for 0.78 and dense vector for 0.73. In the top 5, the scores were 0.96, 0.93 and 0.91."/>
+
+<sub>One run on 2026-11-06 over 45 queries and 30 papers, using `all-MiniLM-L6-v2`. The gaps are small: at rank 1, hybrid found 37 papers, BM25 35 and vector 33. That points to hybrid helping, but it isn't a statistically established result, and it measures finding a paper from related wording, not answering real questions. [Rerun it](scripts/evaluate_retrieval.py) or see the [full data](docs/evaluation.json).</sub>
+
+## Documentation
+
+<details>
+<summary><b>Getting started</b></summary>
+
+Requires Python 3.10+. Models download on first use, about 90 MB for the embedder and about 3 GB for the default Flan-T5 large.
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/mnoorchenar/research-rag-bench.git
 cd research-rag-bench
 
-# 2. Create a virtual environment
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 3. Install PyTorch (CPU-only, ~700 MB)
-pip install torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu
-
-# 4. Install remaining dependencies
+source venv/bin/activate     # Windows: venv\Scripts\activate
+pip install torch            # or the CPU build: see pytorch.org
 pip install -r requirements.txt
 
-# 5. Configure environment variables
-cp .env.example .env
-
-# 6. Run the application
 python wsgi.py
 ```
 
-Open your browser at `http://localhost:7860` 🎉
-
----
-
-## 🐳 Docker Deployment
+Then open http://localhost:7860. Or use Docker, which also downloads both models at build time:
 
 ```bash
-# Build and run with Docker Compose
-docker compose up --build
-
 docker build -t research-rag-bench .
-
 docker run -p 7860:7860 research-rag-bench
 ```
 
----
+</details>
 
-## 📊 Dashboard Tabs
+<details>
+<summary><b>Engineering decisions</b></summary>
 
-| Tab | Description | Status |
-|-----|-------------|--------|
-| 📥 Load | Fetch arXiv papers by topic — domain chips (Data Science, Marketing, Medical) pre-fill the search box; configure chunking strategy and paper count | ✅ Live |
-| 🔍 Ask & Compare | Ask a question → get an AI-generated answer + metrics (relevance, faithfulness, diversity) + radar/bar charts + 3-column side-by-side passages (BM25 vs Vector vs Hybrid) — all in one page | ✅ Live |
-| 🔌 REST API | Programmatic endpoints: `/api/fetch-arxiv`, `/api/query`, `/api/compare` | ✅ Live |
-| 🧠 Fine-tune | Domain-specific embedding fine-tuning on ingested corpus | 🗓️ Planned |
+| Decision | Why |
+|---|---|
+| Fuse rankings with Reciprocal Rank Fusion (k=60) | Cosine similarity and BM25 scores are on different scales. Fusing ranks avoids calibrating them against each other. |
+| Reduce the retrieved text to its 6 most relevant sentences before answering | Flan-T5 has a short input window, and abstract chunks contain titles and filler that distract it. |
+| Fall back to the retrieved sentences when the model refuses | A small model can answer "not enough information" even when the text is relevant. Showing the evidence is more useful than a refusal. |
+| Measure retrieval with held-out sentences | The live relevance metric uses the same embedding model as the vector retriever, so it favors that retriever. The held-out task doesn't. |
+| Run all models locally | There is no key to manage and no quota to hit, at the cost of slower answers on a CPU. |
+| Download models when the image is built | The first question doesn't wait for a multi-gigabyte download. |
+| Embed only new chunks on each fetch | Earlier embeddings are reused, so adding papers doesn't re-encode the whole index. |
+| Rebuild the indices when the saved index is loaded | Only chunks and embeddings are saved, so the search indices must be rebuilt after a restart. |
+| Return short error messages, not stack traces | The API is public, and tracebacks reveal internals. Details go to the server log. |
+| Run one worker with locks around indexing and model loading | The index lives in process memory, so a single process keeps it consistent. |
 
----
+</details>
 
-## 🧠 ML Models
+<details>
+<summary><b>Limitations</b></summary>
 
-```python
-# Core models used in research-rag-bench
-models = {
-    "embedder": "sentence-transformers/all-MiniLM-L6-v2",
-    "sparse_retrieval": "BM25Okapi (rank-bm25)",
-    "vector_store": "FAISS IndexFlatIP (faiss-cpu)",
-    "fusion": "Reciprocal Rank Fusion (k=60)",
-    "generator": "google/flan-t5-base"
-}
+- **The benchmark is small.** It has 45 queries, one embedding model and one run. Differences between methods are a few queries.
+- **The live metrics are weak.** Context relevance uses the same embedder as the vector retriever, so it favors vector search. Faithfulness is word overlap with the retrieved text, which says nothing about whether an answer is true.
+- **Answers are modest.** The models are small, they see only six sentences, and papers are indexed by title and abstract, not full text. Flan-T5 XL is slow on a free CPU (the app's own estimate is about a minute per answer).
+- **One index for everyone.** Loading papers replaces what another visitor is searching. On a Space the index is lost on restart, because the container disk is temporary.
+- **It depends on arXiv.** Fetching needs arXiv to be reachable and can be rate limited.
+- **The first answer is slow.** The first question after a restart loads the model into memory, which takes a while on a free CPU.
+- **The API has no authentication or rate limiting.**
+
+</details>
+
+<details>
+<summary><b>Configuration</b></summary>
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `SECRET_KEY` | development default | Flask secret key. Set your own in production. |
+| `DATA_DIR` | `data` | Folder where indexed papers are saved |
+| `PORT` | `7860` | Port to listen on |
+
+The models are set in `app/models/embedder.py` and `app/models/generator.py`.
+
+</details>
+
+<details>
+<summary><b>API</b></summary>
+
+All endpoints take and return JSON.
+
+| Endpoint | Body | Returns |
+|---|---|---|
+| `POST /api/fetch-arxiv` | `query`, `max_results` (1 to 15), `chunk_strategy` (optional) | Papers and chunks added, and index stats |
+| `POST /api/query` | `question`, `method` (`bm25`, `vector` or `hybrid`), `k` (1 to 10), `model_id` (optional) | Answer, retrieved chunks and metrics |
+| `POST /api/compare` | `question`, `k` | Results and metrics for all three methods |
+| `POST /api/evaluate-batch` | `questions` (up to 10), `k` | Average relevance and diversity per method |
+| `POST /api/clear` | none | Empties the index |
+| `GET /api/stats` | none | Paper and chunk counts, and index status |
+
+</details>
+
+<details>
+<summary><b>Tests</b></summary>
+
+```bash
+pip install -r requirements.txt pytest
+pytest                                     # Fast tests with embeddings and arXiv faked
+python -m scripts.evaluate_retrieval       # Reruns the benchmark on the saved corpus
 ```
 
----
+The tests need no network or model download. They cover chunking, the three retrievers and fusion, saving and reloading the index, incremental indexing, metrics, answer fallbacks, the REST API, the benchmark's task construction and this README's copy for Hugging Face. Add `--refresh` to the benchmark to download a new corpus from arXiv.
 
-## 📁 Project Structure
+</details>
+
+<details>
+<summary><b>Project structure</b></summary>
 
 ```
-research-rag-bench/
-│
-├── 📂 app/
-│   ├── __init__.py
-│   ├── dashboards/
-│   ├── models/
-│   ├── routes/
-│   ├── store.py
-│   └── utils/
-├── 📂 data/
-│   ├── processed/
-│   └── raw/
-├── 📂 docs/
-│   └── prompt.md
-├── 📂 tests/                     # Automated tests
-│   └── test_retrieval.py
-├── 📄 .env.example               # Environment variable template
-├── 📄 Dockerfile                 # Container definition
-├── 📄 app.py                     # Application entry point
-├── 📄 codes.txt
-├── 📄 docker-compose.yml         # Multi-service orchestration
-├── 📄 project-template.html
-├── 📄 requirements.txt           # Python dependencies
-└── 📄 wsgi.py                    # Application entry point
+wsgi.py                     Entry point, used by Gunicorn
+app/
+  __init__.py               Flask app factory
+  services.py               Fetch, chunk, embed and index papers
+  store.py                  Documents, chunks, embeddings and search indices
+  routes/                   REST API: ingest and query
+  models/                   Embedder, retrievers and Flan-T5 generator
+  utils/                    arXiv loader, chunkers and metrics
+  dashboards/               Dash interface
+scripts/
+  evaluate_retrieval.py     Held-out sentence benchmark
+  sync_readme.py            Builds the Hugging Face README from .github/README.md
+docs/                       Figures, evaluation data and corpus snapshot
+tests/                      Test suite
+Dockerfile                  Gunicorn on port 7860, models baked in
 ```
 
----
-
-## 👨‍💻 Author
-
-<div align="center">
-
-<table>
-<tr>
-<td align="center" width="100%">
-
-<img src="https://avatars.githubusercontent.com/mnoorchenar" width="120" style="border-radius:50%; border: 3px solid #4f46e5;" alt="Mohammad Noorchenarboo"/>
-
-<h3>Mohammad Noorchenarboo</h3>
-
-<code>Data Scientist</code> &nbsp;|&nbsp; <code>AI Researcher</code> &nbsp;|&nbsp; <code>Biostatistician</code>
-
-📍 &nbsp;Ontario, Canada &nbsp;&nbsp; 📧 &nbsp;[mohammadnoorchenarboo@gmail.com](mailto:mohammadnoorchenarboo@gmail.com)
-
-──────────────────────────────────────
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mnoorchenar)&nbsp;
-[![Personal Site](https://img.shields.io/badge/Website-mnoorchenar.github.io-4f46e5?style=for-the-badge&logo=githubpages&logoColor=white)](https://mnoorchenar.github.io/)&nbsp;
-[![HuggingFace](https://img.shields.io/badge/HuggingFace-ffcc00?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/mnoorchenar)&nbsp;
-[![Google Scholar](https://img.shields.io/badge/Scholar-4285F4?style=for-the-badge&logo=googlescholar&logoColor=white)](https://scholar.google.ca/citations?user=nn_Toq0AAAAJ&hl=en)&nbsp;
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mnoorchenar)
-
-</td>
-</tr>
-</table>
-
-</div>
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
-3. **Commit** your changes: `git commit -m 'Add amazing feature'`
-4. **Push** to the branch: `git push origin feature/amazing-feature`
-5. **Open** a Pull Request
-
----
-
-## ⚠️ Disclaimer
+</details>
 
 > [!WARNING]
-> This project is developed strictly for educational and research purposes and does not constitute professional advice of any kind. All datasets used are either synthetically generated or publicly available — no real user data is stored. This software is provided "as is" without warranty of any kind; use at your own risk.
+> This project is for research and education only. Generated answers are short, can be wrong, and are based only on paper abstracts, so verify them against the papers. Papers you load are kept in server memory and on disk until cleared or the server restarts.
 
----
-
-## 📜 License
-
-Distributed under the **MIT License**.
-
----
+## Author
 
 <div align="center">
+<table>
+  <tr>
+    <td align="center" width="170">
+      <a href="https://mnoorchenar.github.io/"><img src="https://avatars.githubusercontent.com/mnoorchenar?s=240" width="130" alt="Mohammad Noorchenarboo"/></a>
+    </td>
+    <td>
+      <h3><a href="https://mnoorchenar.github.io/">Mohammad Noorchenarboo</a></h3>
+      Data Scientist · AI Researcher · Biostatistician<br>
+      Ontario, Canada<br><br>
+      <a href="https://mnoorchenar.github.io/"><img src="https://img.shields.io/badge/Website-0f766e?style=flat-square" alt="Website"/></a>
+      <a href="https://www.linkedin.com/in/mnoorchenar"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat-square&logo=linkedin&logoColor=white" alt="LinkedIn"/></a>
+      <a href="https://scholar.google.ca/citations?user=nn_Toq0AAAAJ&hl=en"><img src="https://img.shields.io/badge/Scholar-4285F4?style=flat-square&logo=googlescholar&logoColor=white" alt="Google Scholar"/></a>
+      <a href="https://huggingface.co/mnoorchenar"><img src="https://img.shields.io/badge/Hugging_Face-ffcc00?style=flat-square&logo=huggingface&logoColor=black" alt="Hugging Face"/></a>
+      <a href="mailto:mohammadnoorchenarboo@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=flat-square&logo=gmail&logoColor=white" alt="Email"/></a>
+    </td>
+  </tr>
+</table>
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:3b82f6,100:4f46e5&height=120&section=footer&text=Made%20with%20%E2%9D%A4%EF%B8%8F%20by%20Mohammad%20Noorchenarboo&fontColor=ffffff&fontSize=18&fontAlignY=80" width="100%"/>
-
-[![Star on GitHub](https://img.shields.io/badge/%E2%AD%90_Star-on_GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mnoorchenar/research-rag-bench/stargazers)
-[![Fork on GitHub](https://img.shields.io/badge/%F0%9F%8D%B4_Fork-on_GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mnoorchenar/research-rag-bench/fork)
-
-<sub>The name "research-rag-bench" is used purely for academic and research purposes. Any similarity to existing product names or trademarks is entirely coincidental. This project has no affiliation with any commercial entity.</sub>
+Released under the [MIT License](LICENSE).
 
 </div>

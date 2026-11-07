@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-06",
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "chunk_strategy": "sentence_window",
+  "n_papers": 30,
+  "n_chunks": 75,
+  "n_queries": 45,
+  "results": {
+    "bm25": {
+      "hit@1": 0.778,
+      "hit@5": 0.933,
+      "mrr": 0.839
+    },
+    "vector": {
+      "hit@1": 0.733,
+      "hit@5": 0.911,
+      "mrr": 0.801
+    },
+    "hybrid": {
+      "hit@1": 0.822,
+      "hit@5": 0.956,
+      "mrr": 0.881
+    }
+  }
+}

@@ -1,0 +1,302 @@
+[
+ {
+  "id": "2004.02396v1",
+  "title": "A Learning Framework for n-bit Quantized Neural Networks toward FPGAs",
+  "abstract": "The quantized neural network (QNN) is an efficient approach for network compression and can be widely used in the implementation of FPGAs. This paper proposes a novel learning framework for n-bit QNNs, whose weights are constrained to the power of two. To solve the gradient vanishing problem, we propose a reconstructed gradient function for QNNs in back-propagation algorithm that can directly get the real gradient rather than estimating an approximate gradient of the expected loss. We also propose a novel QNN structure named n-BQ-NN, which uses shift operation to replace the multiply operation and is more suitable for the inference on FPGAs. Furthermore, we also design a shift vector processing element (SVPE) array to replace all 16-bit multiplications with SHIFT operations in convolution operation on FPGAs. We also carry out comparable experiments to evaluate our framework. The experimental results show that the quantized models of ResNet, DenseNet and AlexNet through our learning framework can achieve almost the same accuracies with the original full-precision models. Moreover, when using our learning framework to train our n-BQ-NN from scratch, it can achieve state-of-the-art results compared with typical low-precision QNNs. Experiments on Xilinx ZCU102 platform show that our n-BQ-NN with our SVPE can execute 2.9 times faster than with the vector processing element (VPE) in inference. As the SHIFT operation in our SVPE array will not consume Digital Signal Processings (DSPs) resources on FPGAs, the experiments have shown that the use of SVPE array also reduces average energy consumption to 68.7% of the VPE array with 16-bit.",
+  "authors": "Jun Chen, Liang Liu, Yong Liu",
+  "published": "2020-04-06",
+  "categories": "cs.LG",
+  "url": "http://arxiv.org/abs/2004.02396v1",
+  "topic": "machine learning model evaluation deep learning neural networks"
+ },
+ {
+  "id": "2006.16189v4",
+  "title": "DOME: Recommendations for supervised machine learning validation in biology",
+  "abstract": "Modern biology frequently relies on machine learning to provide predictions and improve decision processes. There have been recent calls for more scrutiny on machine learning performance and possible limitations. Here we present a set of community-wide recommendations aiming to help establish standards of supervised machine learning validation in biology. Adopting a structured methods description for machine learning based on data, optimization, model, evaluation (DOME) will aim to help both reviewers and readers to better understand and assess the performance and limitations of a method or outcome. The recommendations are formulated as questions to anyone wishing to pursue implementation of a machine learning algorithm. Answers to these questions can be easily included in the supplementary material of published papers.",
+  "authors": "Ian Walsh, Dmytro Fishman, Dario Garcia-Gasulla",
+  "published": "2020-06-25",
+  "categories": "q-bio.OT",
+  "url": "http://arxiv.org/abs/2006.16189v4",
+  "topic": "machine learning model evaluation deep learning neural networks"
+ },
+ {
+  "id": "2306.04338v1",
+  "title": "Changing Data Sources in the Age of Machine Learning for Official Statistics",
+  "abstract": "Data science has become increasingly essential for the production of official statistics, as it enables the automated collection, processing, and analysis of large amounts of data. With such data science practices in place, it enables more timely, more insightful and more flexible reporting. However, the quality and integrity of data-science-driven statistics rely on the accuracy and reliability of the data sources and the machine learning techniques that support them. In particular, changes in data sources are inevitable to occur and pose significant risks that are crucial to address in the context of machine learning for official statistics.   This paper gives an overview of the main risks, liabilities, and uncertainties associated with changing data sources in the context of machine learning for official statistics. We provide a checklist of the most prevalent origins and causes of changing data sources; not only on a technical level but also regarding ownership, ethics, regulation, and public perception. Next, we highlight the repercussions of changing data sources on statistical reporting. These include technical effects such as concept drift, bias, availability, validity, accuracy and completeness, but also the neutrality and potential discontinuation of the statistical offering. We offer a few important precautionary measures, such as enhancing robustness in both data sourcing and statistical techniques, and thorough monitoring. In doing so, machine learning-based official statistics can maintain integrity, reliability, consistency, and relevance in policy-making, decision-making, and public discourse.",
+  "authors": "Cedric De Boom, Michael Reusens",
+  "published": "2023-06-07",
+  "categories": "stat.ML",
+  "url": "http://arxiv.org/abs/2306.04338v1",
+  "topic": "machine learning model evaluation deep learning neural networks"
+ },
+ {
+  "id": "2105.04026v2",
+  "title": "The Modern Mathematics of Deep Learning",
+  "abstract": "We describe the new field of mathematical analysis of deep learning. This field emerged around a list of research questions that were not answered within the classical framework of learning theory. These questions concern: the outstanding generalization power of overparametrized neural networks, the role of depth in deep architectures, the apparent absence of the curse of dimensionality, the surprisingly successful optimization performance despite the non-convexity of the problem, understanding what features are learned, why deep architectures perform exceptionally well in physical problems, and which fine aspects of an architecture affect the behavior of a learning task in which way. We present an overview of modern approaches that yield partial answers to these questions. For selected approaches, we describe the main ideas in more detail.",
+  "authors": "Julius Berner, Philipp Grohs, Gitta Kutyniok",
+  "published": "2021-05-09",
+  "categories": "cs.LG",
+  "url": "http://arxiv.org/abs/2105.04026v2",
+  "topic": "machine learning model evaluation deep learning neural networks"
+ },
+ {
+  "id": "2302.08893v4",
+  "title": "Active learning for data streams: a survey",
+  "abstract": "Online active learning is a paradigm in machine learning that aims to select the most informative data points to label from a data stream. The problem of minimizing the cost associated with collecting labeled observations has gained a lot of attention in recent years, particularly in real-world applications where data is only available in an unlabeled form. Annotating each observation can be time-consuming and costly, making it difficult to obtain large amounts of labeled data. To overcome this issue, many active learning strategies have been proposed in the last decades, aiming to select the most informative observations for labeling in order to improve the performance of machine learning models. These approaches can be broadly divided into two categories: static pool-based and stream-based active learning. Pool-based active learning involves selecting a subset of observations from a closed pool of unlabeled data, and it has been the focus of many surveys and literature reviews. However, the growing availability of data streams has led to an increase in the number of approaches that focus on online active learning, which involves continuously selecting and labeling observations as they arrive in a stream. This work aims to provide an overview of the most recently proposed approaches for selecting the most informative observations from data streams in real time. We review the various techniques that have been proposed and discuss their strengths and limitations, as well as the challenges and opportunities that exist in this area of research.",
+  "authors": "Davide Cacciarelli, Murat Kulahci",
+  "published": "2023-02-17",
+  "categories": "stat.ML",
+  "url": "http://arxiv.org/abs/2302.08893v4",
+  "topic": "machine learning model evaluation deep learning neural networks"
+ },
+ {
+  "id": "2603.29261v1",
+  "title": "Monodense Deep Neural Model for Determining Item Price Elasticity",
+  "abstract": "Item Price Elasticity is used to quantify the responsiveness of consumer demand to changes in item prices, enabling businesses to create pricing strategies and optimize revenue management. Sectors such as store retail, e-commerce, and consumer goods rely on elasticity information derived from historical sales and pricing data. This elasticity provides an understanding of purchasing behavior across different items, consumer discount sensitivity, and demand elastic departments. This information is particularly valuable for competitive markets and resource-constrained businesses decision making which aims to maximize profitability and market share. Price elasticity also uncovers historical shifts in consumer responsiveness over time. In this paper, we model item-level price elasticity using large-scale transactional datasets, by proposing a novel elasticity estimation framework which has the capability to work in an absence of treatment control setting. We test this framework by using Machine learning based algorithms listed below, including our newly proposed Monodense deep neural network.   (1) Monodense-DL network -- Hybrid neural network architecture combining embedding, dense, and Monodense layers (2) DML -- Double machine learning setting using regression models (3) LGBM -- Light Gradient Boosting Model   We evaluate our model on multi-category retail data spanning millions of transactions using a back testing framework. Experimental results demonstrate the superiority of our proposed neural network model within the framework compared to other prevalent ML based methods listed above.",
+  "authors": "Lakshya Garg, Sai Yaswanth, Deep Narayan Mishra",
+  "published": "2026-03-31",
+  "categories": "cs.LG",
+  "url": "http://arxiv.org/abs/2603.29261v1",
+  "topic": "machine learning model evaluation deep learning neural networks"
+ },
+ {
+  "id": "2307.07881v2",
+  "title": "Graph Embedded Intuitionistic Fuzzy Random Vector Functional Link Neural Network for Class Imbalance Learning",
+  "abstract": "The domain of machine learning is confronted with a crucial research area known as class imbalance learning, which presents considerable hurdles in precise classification of minority classes. This issue can result in biased models where the majority class takes precedence in the training process, leading to the underrepresentation of the minority class. The random vector functional link (RVFL) network is a widely used and effective learning model for classification due to its good generalization performance and efficiency. However, it suffers when dealing with imbalanced datasets. To overcome this limitation, we propose a novel graph embedded intuitionistic fuzzy RVFL for class imbalance learning (GE-IFRVFL-CIL) model incorporating a weighting mechanism to handle imbalanced datasets. The proposed GE-IFRVFL-CIL model offers plethora of benefits: $(i)$ leveraging graph embedding to preserve the inherent topological structure of the datasets, $(ii)$ employing intuitionistic fuzzy theory to handle uncertainty and imprecision in the data, $(iii)$ and the most important, it tackles class imbalance learning. The amalgamation of a weighting scheme, graph embedding, and intuitionistic fuzzy sets leads to the superior performance of the proposed models on KEEL benchmark imbalanced datasets with and without Gaussian noise. Furthermore, we implemented the proposed GE-IFRVFL-CIL on the ADNI dataset and achieved promising results, demonstrating the model's effectiveness in real-world applications. The proposed GE-IFRVFL-CIL model offers a promising solution to address the class imbalance issue, mitigates the detrimental effect of noise and outliers, and preserves the inherent geometrical structures of the dataset.",
+  "authors": "M. A. Ganaie, M. Sajid, A. K. Malik",
+  "published": "2023-07-15",
+  "categories": "cs.LG",
+  "url": "http://arxiv.org/abs/2307.07881v2",
+  "topic": "machine learning model evaluation deep learning neural networks"
+ },
+ {
+  "id": "2509.08759v3",
+  "title": "Fourier Learning Machines: Nonharmonic Fourier-Based Neural Networks for Scientific Machine Learning",
+  "abstract": "We introduce the Fourier Learning Machine (FLM), a neural network (NN) architecture designed to represent a multidimensional nonharmonic Fourier series. The FLM uses a simple feedforward structure with cosine activation functions to learn the frequencies, amplitudes, and phase shifts of the series as trainable parameters. This design allows the model to create a problem-specific spectral basis adaptable to both periodic and nonperiodic functions. Unlike previous Fourier-inspired NN models, the FLM is the first architecture able to represent a multidimensional Fourier series with a complete set of basis functions in separable form, doing so by using a standard Multilayer Perceptron-like architecture. A one-to-one correspondence between the Fourier coefficients and amplitudes and phase-shifts is demonstrated, allowing for the translation between a full, separable basis form and the cosine phase-shifted one. Additionally, we evaluate the performance of FLMs on several scientific computing problems, including benchmark Partial Differential Equations (PDEs) and a family of Optimal Control Problems (OCPs). Computational experiments show that the performance of FLMs is comparable, and often superior, to that of established architectures like SIREN and vanilla feedforward NNs.",
+  "authors": "Mominul Rubel, Adam Meyers, Gabriel Nicolosi",
+  "published": "2025-09-10",
+  "categories": "cs.LG",
+  "url": "http://arxiv.org/abs/2509.08759v3",
+  "topic": "machine learning model evaluation deep learning neural networks"
+ },
+ {
+  "id": "2201.12150v2",
+  "title": "Learning Curves for Decision Making in Supervised Machine Learning: A Survey",
+  "abstract": "Learning curves are a concept from social sciences that has been adopted in the context of machine learning to assess the performance of a learning algorithm with respect to a certain resource, e.g., the number of training examples or the number of training iterations. Learning curves have important applications in several machine learning contexts, most notably in data acquisition, early stopping of model training, and model selection. For instance, learning curves can be used to model the performance of the combination of an algorithm and its hyperparameter configuration, providing insights into their potential suitability at an early stage and often expediting the algorithm selection process. Various learning curve models have been proposed to use learning curves for decision making. Some of these models answer the binary decision question of whether a given algorithm at a certain budget will outperform a certain reference performance, whereas more complex models predict the entire learning curve of an algorithm. We contribute a framework that categorises learning curve approaches using three criteria: the decision-making situation they address, the intrinsic learning curve question they answer and the type of resources they use. We survey papers from the literature and classify them into this framework.",
+  "authors": "Felix Mohr, Jan N. van Rijn",
+  "published": "2022-01-28",
+  "categories": "cs.LG",
+  "url": "http://arxiv.org/abs/2201.12150v2",
+  "topic": "machine learning model evaluation deep learning neural networks"
+ },
+ {
+  "id": "2103.00113v2",
+  "title": "Anomaly Detection on Attributed Networks via Contrastive Self-Supervised Learning",
+  "abstract": "Anomaly detection on attributed networks attracts considerable research interests due to wide applications of attributed networks in modeling a wide range of complex systems. Recently, the deep learning-based anomaly detection methods have shown promising results over shallow approaches, especially on networks with high-dimensional attributes and complex structures. However, existing approaches, which employ graph autoencoder as their backbone, do not fully exploit the rich information of the network, resulting in suboptimal performance. Furthermore, these methods do not directly target anomaly detection in their learning objective and fail to scale to large networks due to the full graph training mechanism. To overcome these limitations, in this paper, we present a novel contrastive self-supervised learning framework for anomaly detection on attributed networks. Our framework fully exploits the local information from network data by sampling a novel type of contrastive instance pair, which can capture the relationship between each node and its neighboring substructure in an unsupervised way. Meanwhile, a well-designed graph neural network-based contrastive learning model is proposed to learn informative embedding from high-dimensional attributes and local structure and measure the agreement of each instance pairs with its outputted scores. The multi-round predicted scores by the contrastive learning model are further used to evaluate the abnormality of each node with statistical estimation. In this way, the learning model is trained by a specific anomaly detection-aware target. Furthermore, since the input of the graph neural network module is batches of instance pairs instead of the full network, our framework can adapt to large networks flexibly. Experimental results show that our proposed framework outperforms the state-of-the-art baseline methods on all seven benchmark datasets.",
+  "authors": "Yixin Liu, Zhao Li, Shirui Pan",
+  "published": "2021-02-27",
+  "categories": "cs.LG",
+  "url": "http://arxiv.org/abs/2103.00113v2",
+  "topic": "machine learning model evaluation deep learning neural networks"
+ },
+ {
+  "id": "1802.05737v1",
+  "title": "JU_KS@SAIL_CodeMixed-2017: Sentiment Analysis for Indian Code Mixed Social Media Texts",
+  "abstract": "This paper reports about our work in the NLP Tool Contest @ICON-2017, shared task on Sentiment Analysis for Indian Languages (SAIL) (code mixed). To implement our system, we have used a machine learning algo-rithm called Multinomial Naïve Bayes trained using n-gram and SentiWordnet features. We have also used a small SentiWordnet for English and a small SentiWordnet for Bengali. But we have not used any SentiWordnet for Hindi language. We have tested our system on Hindi-English and Bengali-English code mixed social media data sets released for the contest. The performance of our system is very close to the best system participated in the contest. For both Bengali-English and Hindi-English runs, our system was ranked at the 3rd position out of all submitted runs and awarded the 3rd prize in the contest.",
+  "authors": "Kamal Sarkar",
+  "published": "2018-02-15",
+  "categories": "cs.CL",
+  "url": "http://arxiv.org/abs/1802.05737v1",
+  "topic": "digital marketing consumer behavior NLP sentiment analysis"
+ },
+ {
+  "id": "1912.02387v1",
+  "title": "SemEval-2015 Task 10: Sentiment Analysis in Twitter",
+  "abstract": "In this paper, we describe the 2015 iteration of the SemEval shared task on Sentiment Analysis in Twitter. This was the most popular sentiment analysis shared task to date with more than 40 teams participating in each of the last three years. This year's shared task competition consisted of five sentiment prediction subtasks. Two were reruns from previous years: (A) sentiment expressed by a phrase in the context of a tweet, and (B) overall sentiment of a tweet. We further included three new subtasks asking to predict (C) the sentiment towards a topic in a single tweet, (D) the overall sentiment towards a topic in a set of tweets, and (E) the degree of prior polarity of a phrase.",
+  "authors": "Sara Rosenthal, Saif M Mohammad, Preslav Nakov",
+  "published": "2019-12-05",
+  "categories": "cs.CL",
+  "url": "http://arxiv.org/abs/1912.02387v1",
+  "topic": "digital marketing consumer behavior NLP sentiment analysis"
+ },
+ {
+  "id": "2109.13725v1",
+  "title": "Sentiment Analysis in Twitter for Macedonian",
+  "abstract": "We present work on sentiment analysis in Twitter for Macedonian. As this is pioneering work for this combination of language and genre, we created suitable resources for training and evaluating a system for sentiment analysis of Macedonian tweets. In particular, we developed a corpus of tweets annotated with tweet-level sentiment polarity (positive, negative, and neutral), as well as with phrase-level sentiment, which we made freely available for research purposes. We further bootstrapped several large-scale sentiment lexicons for Macedonian, motivated by previous work for English. The impact of several different pre-processing steps as well as of various features is shown in experiments that represent the first attempt to build a system for sentiment analysis in Twitter for the morphologically rich Macedonian language. Overall, our experimental results show an F1-score of 92.16, which is very strong and is on par with the best results for English, which were achieved in recent SemEval competitions.",
+  "authors": "Dame Jovanoski, Veno Pachovski, Preslav Nakov",
+  "published": "2021-09-27",
+  "categories": "cs.CL",
+  "url": "http://arxiv.org/abs/2109.13725v1",
+  "topic": "digital marketing consumer behavior NLP sentiment analysis"
+ },
+ {
+  "id": "1707.08939v1",
+  "title": "Strawman: an Ensemble of Deep Bag-of-Ngrams for Sentiment Analysis",
+  "abstract": "This paper describes a builder entry, named \"strawman\", to the sentence-level sentiment analysis task of the \"Build It, Break It\" shared task of the First Workshop on Building Linguistically Generalizable NLP Systems. The goal of a builder is to provide an automated sentiment analyzer that would serve as a target for breakers whose goal is to find pairs of minimally-differing sentences that break the analyzer.",
+  "authors": "Kyunghyun Cho",
+  "published": "2017-07-26",
+  "categories": "cs.CL",
+  "url": "http://arxiv.org/abs/1707.08939v1",
+  "topic": "digital marketing consumer behavior NLP sentiment analysis"
+ },
+ {
+  "id": "2109.12630v1",
+  "title": "Decision Making For Celebrity Branding: An Opinion Mining Approach Based On Polarity And Sentiment Analysis Using Twitter Consumer-Generated Content (CGC)",
+  "abstract": "The volume of discussions concerning brands within social media provides digital marketers with great opportunities for tracking and analyzing the feelings and views of consumers toward brands, products, influencers, services, and ad campaigns in CGC. The present study aims to assess and compare the performance of firms and celebrities (i.e., influencers that with the experience of being in an ad campaign of those companies) with the automated sentiment analysis that was employed for CGC at social media while exploring the feeling of the consumers toward them to observe which influencer (of two for each company) had a closer effect with the corresponding corporation on consumer minds. For this purpose, several consumer tweets from the pages of brands and influencers were utilized to make a comparison of machine learning and lexicon-based approaches to the sentiment analysis through the Naive algorithm (lexicon-based) and Naive Bayes algorithm (machine learning method) and obtain the desired results to assess the campaigns. The findings suggested that the approaches were dissimilar in terms of accuracy; the machine learning method yielded higher accuracy. Finally, the results showed which influencer was more appropriate according to their existence in previous campaigns and helped choose the right influencer in the future for our company and have a better, more appropriate, and more efficient ad campaign subsequently. It is required to conduct further studies on the accuracy improvement of the sentiment classification. This approach should be employed for other social media CGC types. The results revealed decision-making for which sentiment analysis methods are the best approaches for the analysis of social media. It was also found that companies should be aware of their consumers' sentiments and choose the right person every time they think of a campaign.",
+  "authors": "Ali Nikseresht, Mohammad Hosein Raeisi, Hossein Abbasian Mohammadi",
+  "published": "2021-09-26",
+  "categories": "cs.SI",
+  "url": "http://arxiv.org/abs/2109.12630v1",
+  "topic": "digital marketing consumer behavior NLP sentiment analysis"
+ },
+ {
+  "id": "2206.05042v1",
+  "title": "Sentiment analysis on electricity twitter posts",
+  "abstract": "In today's world, everyone is expressive in some way, and the focus of this project is on people's opinions about rising electricity prices in United Kingdom and India using data from Twitter, a micro-blogging platform on which people post messages, known as tweets. Because many people's incomes are not good and they have to pay so many taxes and bills, maintaining a home has become a disputed issue these days. Despite the fact that Government offered subsidy schemes to compensate people electricity bills but it is not welcomed by people. In this project, the aim is to perform sentiment analysis on people's expressions and opinions expressed on Twitter. In order to grasp the electricity prices opinion, it is necessary to carry out sentiment analysis for the government and consumers in energy market. Furthermore, text present on these medias are unstructured in nature, so to process them we firstly need to pre-process the data. There are so many feature extraction techniques such as Bag of Words, TF-IDF (Term Frequency-Inverse Document Frequency), word embedding, NLP based features like word count. In this project, we analysed the impact of feature TF-IDF word level on electricity bills dataset of sentiment analysis. We found that by using TF-IDF word level performance of sentiment analysis is 3-4 higher than using N-gram features. Analysis is done using four classification algorithms including Naive Bayes, Decision Tree, Random Forest, and Logistic Regression and considering F-Score, Accuracy, Precision, and Recall performance parameters.",
+  "authors": "Pardeep Kaur, Maryam Edalati",
+  "published": "2022-06-10",
+  "categories": "cs.CL",
+  "url": "http://arxiv.org/abs/2206.05042v1",
+  "topic": "digital marketing consumer behavior NLP sentiment analysis"
+ },
+ {
+  "id": "1910.01441v1",
+  "title": "Can Sentiment Analysis Reveal Structure in a Plotless Novel?",
+  "abstract": "Modernist novels are thought to break with traditional plot structure. In this paper, we test this theory by applying Sentiment Analysis to one of the most famous modernist novels, To the Lighthouse by Virginia Woolf. We first assess Sentiment Analysis in light of the critique that it cannot adequately account for literary language: we use a unique statistical comparison to demonstrate that even simple lexical approaches to Sentiment Analysis are surprisingly effective. We then use the Syuzhet.R package to explore similarities and differences across modeling methods. This comparative approach, when paired with literary close reading, can offer interpretive clues. To our knowledge, we are the first to undertake a hybrid model that fully leverages the strengths of both computational analysis and close reading. This hybrid model raises new questions for the literary critic, such as how to interpret relative versus absolute emotional valence and how to take into account subjective identification. Our finding is that while To the Lighthouse does not replicate a plot centered around a traditional hero, it does reveal an underlying emotional structure distributed between characters - what we term a distributed heroine model. This finding is innovative in the field of modernist and narrative studies and demonstrates that a hybrid method can yield significant discoveries.",
+  "authors": "Katherine Elkins, Jon Chun",
+  "published": "2019-08-31",
+  "categories": "cs.CL",
+  "url": "http://arxiv.org/abs/1910.01441v1",
+  "topic": "digital marketing consumer behavior NLP sentiment analysis"
+ },
+ {
+  "id": "1406.2022v1",
+  "title": "Two-dimensional Sentiment Analysis of text",
+  "abstract": "Sentiment Analysis aims to get the underlying viewpoint of the text, which could be anything that holds a subjective opinion, such as an online review, Movie rating, Comments on Blog posts etc. This paper presents a novel approach that classify text in two-dimensional Emotional space, based on the sentiments of the author. The approach uses existing lexical resources to extract feature set, which is trained using Supervised Learning techniques.",
+  "authors": "Rahul Tejwani",
+  "published": "2014-06-08",
+  "categories": "cs.IR",
+  "url": "http://arxiv.org/abs/1406.2022v1",
+  "topic": "digital marketing consumer behavior NLP sentiment analysis"
+ },
+ {
+  "id": "1912.06806v1",
+  "title": "SemEval-2013 Task 2: Sentiment Analysis in Twitter",
+  "abstract": "In recent years, sentiment analysis in social media has attracted a lot of research interest and has been used for a number of applications. Unfortunately, research has been hindered by the lack of suitable datasets, complicating the comparison between approaches. To address this issue, we have proposed SemEval-2013 Task 2: Sentiment Analysis in Twitter, which included two subtasks: A, an expression-level subtask, and B, a message-level subtask. We used crowdsourcing on Amazon Mechanical Turk to label a large Twitter training dataset along with additional test sets of Twitter and SMS messages for both subtasks. All datasets used in the evaluation are released to the research community. The task attracted significant interest and a total of 149 submissions from 44 teams. The best-performing team achieved an F1 of 88.9% and 69% for subtasks A and B, respectively.",
+  "authors": "Preslav Nakov, Zornitsa Kozareva, Alan Ritter",
+  "published": "2019-12-14",
+  "categories": "cs.CL",
+  "url": "http://arxiv.org/abs/1912.06806v1",
+  "topic": "digital marketing consumer behavior NLP sentiment analysis"
+ },
+ {
+  "id": "2010.01429v1",
+  "title": "Aspect-Based Sentiment Analysis in Education Domain",
+  "abstract": "Analysis of a large amount of data has always brought value to institutions and organizations. Lately, people's opinions expressed through text have become a very important aspect of this analysis. In response to this challenge, a natural language processing technique known as Aspect-Based Sentiment Analysis (ABSA) has emerged. Having the ability to extract the polarity for each aspect of opinions separately, ABSA has found itself useful in a wide range of domains. Education is one of the domains in which ABSA can be successfully utilized. Being able to understand and find out what students like and don't like most about a course, professor, or teaching methodology can be of great importance for the respective institutions. While this task represents a unique NLP challenge, many studies have proposed different approaches to tackle the problem. In this work, we present a comprehensive review of the existing work in ABSA with a focus in the education domain. A wide range of methodologies are discussed and conclusions are drawn.",
+  "authors": "Rinor Hajrizi, Krenare Pireva Nuçi",
+  "published": "2020-10-03",
+  "categories": "cs.CL",
+  "url": "http://arxiv.org/abs/2010.01429v1",
+  "topic": "digital marketing consumer behavior NLP sentiment analysis"
+ },
+ {
+  "id": "2404.17576v1",
+  "title": "Enhancing Longitudinal Clinical Trial Efficiency with Digital Twins and Prognostic Covariate-Adjusted Mixed Models for Repeated Measures (PROCOVA-MMRM)",
+  "abstract": "Clinical trials are critical in advancing medical treatments but often suffer from immense time and financial burden. Advances in statistical methodologies and artificial intelligence (AI) present opportunities to address these inefficiencies. Here we introduce Prognostic Covariate-Adjusted Mixed Models for Repeated Measures (PROCOVA-MMRM) as an advantageous combination of prognostic covariate adjustment (PROCOVA) and Mixed Models for Repeated Measures (MMRM). PROCOVA-MMRM utilizes time-matched prognostic scores generated from AI models to enhance the precision of treatment effect estimators for longitudinal continuous outcomes, enabling reductions in sample size and enrollment times. We first provide a description of the background and implementation of PROCOVA-MMRM, followed by two case study reanalyses where we compare the performance of PROCOVA-MMRM versus the unadjusted MMRM. These reanalyses demonstrate significant improvements in statistical power and precision in clinical indications with unmet medical need, specifically Alzheimer's Disease (AD) and Amyotrophic Lateral Sclerosis (ALS). We also explore the potential for sample size reduction with the prospective implementation of PROCOVA-MMRM, finding that the same or better results could have been achieved with fewer participants in these historical trials if the enhanced precision provided by PROCOVA-MMRM had been prospectively leveraged. We also confirm the robustness of the statistical properties of PROCOVA-MMRM in a variety of realistic simulation scenarios. Altogether, PROCOVA-MMRM represents a rigorous method of incorporating advances in the prediction of time-matched prognostic scores generated by AI into longitudinal analysis, potentially reducing both the cost and time required to bring new treatments to patients while adhering to regulatory standards.",
+  "authors": "Jessica L. Ross, Arman Sabbaghi, Run Zhuang",
+  "published": "2024-04-26",
+  "categories": "stat.AP",
+  "url": "http://arxiv.org/abs/2404.17576v1",
+  "topic": "clinical NLP biomedical text mining disease prediction"
+ },
+ {
+  "id": "2011.09625v2",
+  "title": "Exploring Text Specific and Blackbox Fairness Algorithms in Multimodal Clinical NLP",
+  "abstract": "Clinical machine learning is increasingly multimodal, collected in both structured tabular formats and unstructured forms such as freetext. We propose a novel task of exploring fairness on a multimodal clinical dataset, adopting equalized odds for the downstream medical prediction tasks. To this end, we investigate a modality-agnostic fairness algorithm - equalized odds post processing - and compare it to a text-specific fairness algorithm: debiased clinical word embeddings. Despite the fact that debiased word embeddings do not explicitly address equalized odds of protected groups, we show that a text-specific approach to fairness may simultaneously achieve a good balance of performance and classical notions of fairness. We hope that our paper inspires future contributions at the critical intersection of clinical NLP and fairness. The full source code is available here: https://github.com/johntiger1/multimodal_fairness",
+  "authors": "John Chen, Ian Berlot-Attwell, Safwan Hossain",
+  "published": "2020-11-19",
+  "categories": "cs.CL",
+  "url": "http://arxiv.org/abs/2011.09625v2",
+  "topic": "clinical NLP biomedical text mining disease prediction"
+ },
+ {
+  "id": "1112.1668v1",
+  "title": "Data Mining and Electronic Health Records: Selecting Optimal Clinical Treatments in Practice",
+  "abstract": "Electronic health records (EHR's) are only a first step in capturing and utilizing health-related data - the problem is turning that data into useful information. Models produced via data mining and predictive analysis profile inherited risks and environmental/behavioral factors associated with patient disorders, which can be utilized to generate predictions about treatment outcomes. This can form the backbone of clinical decision support systems driven by live data based on the actual population. The advantage of such an approach based on the actual population is that it is \"adaptive\". Here, we evaluate the predictive capacity of a clinical EHR of a large mental healthcare provider (~75,000 distinct clients a year) to provide decision support information in a real-world clinical setting. Initial research has achieved a 70% success rate in predicting treatment outcomes using these methods.",
+  "authors": "Casey Bennett, Thomas Doub",
+  "published": "2011-12-07",
+  "categories": "cs.DB",
+  "url": "http://arxiv.org/abs/1112.1668v1",
+  "topic": "clinical NLP biomedical text mining disease prediction"
+ },
+ {
+  "id": "2412.00160v1",
+  "title": "How reproducible are data-driven subtypes of Alzheimer's disease atrophy?",
+  "abstract": "Alzheimer's disease (AD) exhibits substantial clinical and biological heterogeneity, complicating efforts in treatment and intervention development. While new computational methods offer insights into AD progression, the reproducibility of these subtypes across datasets remains understudied, particularly concerning the robustness of subtype definitions when validated on diverse databases. This study evaluates the consistency of AD progression subtypes identified by the Subtype and Stage Inference (SuStaIn) algorithm using T1-weighted MRI data across 5,444 subjects from ANMerge, OASIS, and ADNI datasets, forming four independent cohorts. Each cohort was analyzed under two conditions: one using the full cohort, including cognitively normal controls, and another excluding controls to test subtype robustness. Results confirm the three primary atrophy subtypes identified in earlier studies: Typical, Cortical, and Subcortical, as well as the emergence of rare and atypical AD variants such as posterior cortical atrophy (PCA). Notably, each subtype displayed varying robustness to the inclusion of controls, with certain subtypes, like Subcortical, more influenced by cohort composition. This investigation underscores SuStaIn's reliability for defining stable AD subtypes and suggests its utility in clinical stratification for trials and diagnosis. However, our findings also highlight the need for improved dataset diversity, particularly in terms of ethnic representation, to enhance generalizability and support broader clinical application.",
+  "authors": "Emma Prevot, Cameron Shand, Neil Oxtoby",
+  "published": "2024-11-29",
+  "categories": "q-bio.QM",
+  "url": "http://arxiv.org/abs/2412.00160v1",
+  "topic": "clinical NLP biomedical text mining disease prediction"
+ },
+ {
+  "id": "2504.03964v1",
+  "title": "Clinical ModernBERT: An efficient and long context encoder for biomedical text",
+  "abstract": "We introduce Clinical ModernBERT, a transformer based encoder pretrained on large scale biomedical literature, clinical notes, and medical ontologies, incorporating PubMed abstracts, MIMIC IV clinical data, and medical codes with their textual descriptions. Building on ModernBERT the current state of the art natural language text encoder featuring architectural upgrades such as rotary positional embeddings (RoPE), Flash Attention, and extended context length up to 8,192 tokens our model adapts these innovations specifically for biomedical and clinical domains. Clinical ModernBERT excels at producing semantically rich representations tailored for long context tasks. We validate this both by analyzing its pretrained weights and through empirical evaluation on a comprehensive suite of clinical NLP benchmarks.",
+  "authors": "Simon A. Lee, Anthony Wu, Jeffrey N. Chiang",
+  "published": "2025-04-04",
+  "categories": "cs.CL",
+  "url": "http://arxiv.org/abs/2504.03964v1",
+  "topic": "clinical NLP biomedical text mining disease prediction"
+ },
+ {
+  "id": "2001.10285v1",
+  "title": "Mining social media data for biomedical signals and health-related behavior",
+  "abstract": "Social media data has been increasingly used to study biomedical and health-related phenomena. From cohort level discussions of a condition to planetary level analyses of sentiment, social media has provided scientists with unprecedented amounts of data to study human behavior and response associated with a variety of health conditions and medical treatments. Here we review recent work in mining social media for biomedical, epidemiological, and social phenomena information relevant to the multilevel complexity of human health. We pay particular attention to topics where social media data analysis has shown the most progress, including pharmacovigilance, sentiment analysis especially for mental health, and other areas. We also discuss a variety of innovative uses of social media data for health-related applications and important limitations in social media data access and use.",
+  "authors": "Rion Brattig Correia, Ian B. Wood, Johan Bollen",
+  "published": "2020-01-28",
+  "categories": "cs.CY",
+  "url": "http://arxiv.org/abs/2001.10285v1",
+  "topic": "clinical NLP biomedical text mining disease prediction"
+ },
+ {
+  "id": "2403.04261v2",
+  "title": "Advancing Chinese biomedical text mining with community challenges",
+  "abstract": "Objective: This study aims to review the recent advances in community challenges for biomedical text mining in China. Methods: We collected information of evaluation tasks released in community challenges of biomedical text mining, including task description, dataset description, data source, task type and related links. A systematic summary and comparative analysis were conducted on various biomedical natural language processing tasks, such as named entity recognition, entity normalization, attribute extraction, relation extraction, event extraction, text classification, text similarity, knowledge graph construction, question answering, text generation, and large language model evaluation. Results: We identified 39 evaluation tasks from 6 community challenges that spanned from 2017 to 2023. Our analysis revealed the diverse range of evaluation task types and data sources in biomedical text mining. We explored the potential clinical applications of these community challenge tasks from a translational biomedical informatics perspective. We compared with their English counterparts, and discussed the contributions, limitations, lessons and guidelines of these community challenges, while highlighting future directions in the era of large language models. Conclusion: Community challenge evaluation competitions have played a crucial role in promoting technology innovation and fostering interdisciplinary collaboration in the field of biomedical text mining. These challenges provide valuable platforms for researchers to develop state-of-the-art solutions.",
+  "authors": "Hui Zong, Rongrong Wu, Jiaxue Cha",
+  "published": "2024-03-07",
+  "categories": "cs.AI",
+  "url": "http://arxiv.org/abs/2403.04261v2",
+  "topic": "clinical NLP biomedical text mining disease prediction"
+ },
+ {
+  "id": "2402.12205v1",
+  "title": "Self-organized clustering, prediction, and superposition of long-term cognitive decline from short-term individual cognitive test scores in Alzheimer's disease",
+  "abstract": "Progressive cognitive decline spanning across decades is characteristic of Alzheimer's disease (AD). Various predictive models have been designed to realize its early onset and study the long-term trajectories of cognitive test scores across populations of interest. Research efforts have been geared towards superimposing patients' cognitive test scores with the long-term trajectory denoting gradual cognitive decline, while considering the heterogeneity of AD. Multiple trajectories representing cognitive assessment for the long-term have been developed based on various parameters, highlighting the importance of classifying several groups based on disease progression patterns. In this study, a novel method capable of self-organized prediction, classification, and the overlay of long-term cognitive trajectories based on short-term individual data was developed, based on statistical and differential equation modeling. We validated the predictive accuracy of the proposed method for the long-term trajectory of cognitive test score results on two cohorts: the Alzheimer's Disease Neuroimaging Initiative (ADNI) study and the Japanese ADNI study. We also presented two practical illustrations of the simultaneous evaluation of risk factor associated with both the onset and the longitudinal progression of AD, and an innovative randomized controlled trial design for AD that standardizes the heterogeneity of patients enrolled in a clinical trial. These resources would improve the power of statistical hypothesis testing and help evaluate the therapeutic effect. The application of predicting the trajectory of longitudinal disease progression goes beyond AD, and is especially relevant for progressive and neurodegenerative disorders.",
+  "authors": "Hiroyuki Sato, Keisuke Suzuki, Atsushi Hashizume",
+  "published": "2024-02-19",
+  "categories": "q-bio.QM",
+  "url": "http://arxiv.org/abs/2402.12205v1",
+  "topic": "clinical NLP biomedical text mining disease prediction"
+ },
+ {
+  "id": "2302.04725v1",
+  "title": "Lightweight Transformers for Clinical Natural Language Processing",
+  "abstract": "Specialised pre-trained language models are becoming more frequent in NLP since they can potentially outperform models trained on generic texts. BioBERT and BioClinicalBERT are two examples of such models that have shown promise in medical NLP tasks. Many of these models are overparametrised and resource-intensive, but thanks to techniques like Knowledge Distillation (KD), it is possible to create smaller versions that perform almost as well as their larger counterparts. In this work, we specifically focus on development of compact language models for processing clinical texts (i.e. progress notes, discharge summaries etc). We developed a number of efficient lightweight clinical transformers using knowledge distillation and continual learning, with the number of parameters ranging from 15 million to 65 million. These models performed comparably to larger models such as BioBERT and ClinicalBioBERT and significantly outperformed other compact models trained on general or biomedical data. Our extensive evaluation was done across several standard datasets and covered a wide range of clinical text-mining tasks, including Natural Language Inference, Relation Extraction, Named Entity Recognition, and Sequence Classification. To our knowledge, this is the first comprehensive study specifically focused on creating efficient and compact transformers for clinical NLP tasks. The models and code used in this study can be found on our Huggingface profile at https://huggingface.co/nlpie and Github page at https://github.com/nlpie-research/Lightweight-Clinical-Transformers, respectively, promoting reproducibility of our results.",
+  "authors": "Omid Rohanian, Mohammadmahdi Nouriborji, Hannah Jauncey",
+  "published": "2023-02-09",
+  "categories": "cs.CL",
+  "url": "http://arxiv.org/abs/2302.04725v1",
+  "topic": "clinical NLP biomedical text mining disease prediction"
+ },
+ {
+  "id": "1608.05605v1",
+  "title": "Using Distributed Representations to Disambiguate Biomedical and Clinical Concepts",
+  "abstract": "In this paper, we report a knowledge-based method for Word Sense Disambiguation in the domains of biomedical and clinical text. We combine word representations created on large corpora with a small number of definitions from the UMLS to create concept representations, which we then compare to representations of the context of ambiguous terms. Using no relational information, we obtain comparable performance to previous approaches on the MSH-WSD dataset, which is a well-known dataset in the biomedical domain. Additionally, our method is fast and easy to set up and extend to other domains. Supplementary materials, including source code, can be found at https: //github.com/clips/yarn",
+  "authors": "Stéphan Tulkens, Simon Šuster, Walter Daelemans",
+  "published": "2016-08-19",
+  "categories": "cs.CL",
+  "url": "http://arxiv.org/abs/1608.05605v1",
+  "topic": "clinical NLP biomedical text mining disease prediction"
+ }
+]

@@ -3,9 +3,12 @@ eval_dashboard.py — research-rag-bench
 All IDs always in DOM. Visibility via style callbacks only.
 """
 from __future__ import annotations
+import logging
 import dash
 from dash import dcc, html, Input, Output, State, ctx, ALL
 import plotly.graph_objects as go
+
+log = logging.getLogger(__name__)
 
 _INDEX = """<!DOCTYPE html>
 <html data-theme="dark">
@@ -498,31 +501,23 @@ def create_dash_app(server):
         State("ingest-q","value"),State("n-papers","value"),State("chunk-strat","value"),prevent_initial_call=True)
     def handle_ingest(_f,_c,query,n,strat):
         from app.store import store
-        from app.utils.arxiv_loader import fetch_arxiv_papers
-        from app.utils.chunker import chunk_text
-        from app.models.embedder import embed_texts
-        from app.models.retriever import build_faiss_index,build_bm25_index
+        from app.services import index_papers
         hide={"display":"none"}
         if ctx.triggered_id=="clear-btn":
             store.clear();return html.Span("✅ Index cleared.",className="ok"),html.Div(),hide
         if not query or not query.strip():
             return html.Span("⚠️ Please enter a topic.",className="wn"),dash.no_update,hide
         try:
-            papers=fetch_arxiv_papers(query.strip(),max_results=n or 5)
-            if not papers: return html.Span("❌ No papers found.",className="er"),dash.no_update,hide
-            new_chunks=[]
-            for p in papers:
-                if any(d["id"]==p["id"] for d in store.documents): continue
-                store.add_document(p)
-                for i,ct in enumerate(chunk_text(f"{p['title']}.\n\n{p['abstract']}",strat or "sentence_window")):
-                    new_chunks.append({"id":f"{p['id']}_chunk_{i}","doc_id":p["id"],"title":p["title"],"text":ct,"chunk_idx":i,"source":p["url"]})
-            store.add_chunks(new_chunks)
-            if store.chunk_texts:
-                embs=embed_texts(store.chunk_texts);store.set_embeddings(embs)
-                store.faiss_index=build_faiss_index(embs);store.bm25_index=build_bm25_index(store.chunk_texts)
-            store.save();s=store.stats()
-            return html.Span(f"✅ {len(papers)} paper(s) → {len(new_chunks)} new chunks. Total: {s['n_documents']} docs, {s['n_chunks']} chunks.",className="ok"),_papers_table(store.documents),hide
-        except Exception as exc:
-            return html.Span(f"❌ {exc}",className="er"),dash.no_update,hide
+            res=index_papers(query.strip(),max_results=n or 5,strategy=strat or "sentence_window")
+        except Exception:
+            log.exception("arXiv ingest failed")
+            return html.Span("❌ Could not fetch papers from arXiv. Try again in a moment.",className="er"),dash.no_update,hide
+        if not res["found"]: return html.Span("❌ No papers found.",className="er"),dash.no_update,hide
+        s=store.stats()
+        if not res["papers_added"]:
+            msg=f"✅ Those {res['found']} paper(s) are already indexed. Total: {s['n_documents']} docs, {s['n_chunks']} chunks."
+        else:
+            msg=f"✅ {res['papers_added']} new paper(s) → {res['chunks_added']} new chunks. Total: {s['n_documents']} docs, {s['n_chunks']} chunks."
+        return html.Span(msg,className="ok"),_papers_table(store.documents),hide
 
     return app

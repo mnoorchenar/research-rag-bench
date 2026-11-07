@@ -29,7 +29,21 @@ class DocumentStore:
                 self.chunks     = data.get("chunks", [])
                 self.embeddings = data.get("embeddings", None)
             except Exception:
-                pass
+                return
+            self.rebuild_indices()
+
+    def rebuild_indices(self):
+        """Build the FAISS and BM25 indices from the stored chunks and embeddings.
+
+        Only the documents, chunks and embeddings are saved to disk, so this runs after
+        a reload. Without it the store would report chunks but refuse every query.
+        """
+        from app.models.retriever import build_faiss_index, build_bm25_index
+        with self._lock:
+            if not self.chunks or self.embeddings is None or len(self.embeddings) != len(self.chunks):
+                return
+            self.faiss_index = build_faiss_index(self.embeddings)
+            self.bm25_index  = build_bm25_index([c["text"] for c in self.chunks])
 
     def save(self):
         with self._lock:
@@ -60,4 +74,4 @@ class DocumentStore:
     def stats(self): return {"n_documents":len(self.documents),"n_chunks":len(self.chunks),"has_faiss":self.faiss_index is not None,"has_bm25":self.bm25_index is not None}
 
 
-store = DocumentStore()
+store = DocumentStore(os.environ.get("DATA_DIR", "data"))

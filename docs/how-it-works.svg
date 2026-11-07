@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="340" viewBox="0 0 1000 340" role="img" aria-labelledby="title desc" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title id="title">How research-rag-bench works</title>
+  <desc id="desc">A topic is searched on arXiv. The papers are split into chunks, embedded, and stored in a FAISS vector index and a BM25 index. A question is answered by three retrieval methods: BM25, dense vector and hybrid reciprocal rank fusion. The chosen method's passages are reduced to the six best sentences and given to a local Flan-T5 model for the answer. All three methods are also scored for relevance and diversity, and shown side by side.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 10 5 0 10z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <style>
+    .box { fill: #f1f5f9; stroke: #94a3b8; stroke-width: 1.5; }
+    .key { fill: #e0f2fe; stroke: #0284c7; stroke-width: 1.5; }
+    .text { fill: #0f172a; font-size: 16px; font-weight: 600; text-anchor: middle; }
+    .sub { fill: #475569; font-size: 13px; font-weight: 500; text-anchor: middle; }
+    .white { fill: #ffffff; font-size: 16px; font-weight: 700; text-anchor: middle; }
+    .whitesub { fill: #ccfbf1; font-size: 13px; font-weight: 500; text-anchor: middle; }
+    .band { fill: #64748b; font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+    .line { fill: none; stroke: #64748b; stroke-width: 2; marker-end: url(#arrow); }
+  </style>
+  <rect x="1" y="1" width="998" height="338" rx="12" fill="#ffffff" stroke="#d0d7de" stroke-width="2"/>
+
+  <text class="band" x="24" y="30">1. LOAD PAPERS</text>
+  <text class="band" x="24" y="132">2. ASK A QUESTION</text>
+
+  <rect class="box" x="24" y="44" width="100" height="56" rx="28"/>
+  <text class="text" x="74" y="68">Topic</text>
+  <text class="sub" x="74" y="88">your search</text>
+
+  <rect class="box" x="150" y="44" width="130" height="56" rx="8"/>
+  <text class="text" x="215" y="68">arXiv papers</text>
+  <text class="sub" x="215" y="88">title + abstract</text>
+
+  <rect class="box" x="306" y="44" width="130" height="56" rx="8"/>
+  <text class="text" x="371" y="68">Chunk</text>
+  <text class="sub" x="371" y="88">3 strategies</text>
+
+  <rect class="box" x="462" y="44" width="130" height="56" rx="8"/>
+  <text class="text" x="527" y="68">Embed</text>
+  <text class="sub" x="527" y="88">MiniLM, local</text>
+
+  <rect class="key" x="618" y="44" width="170" height="56" rx="8"/>
+  <text class="text" x="703" y="68">Two indices</text>
+  <text class="sub" x="703" y="88">FAISS + BM25</text>
+
+  <path class="line" d="M124 72H150"/>
+  <path class="line" d="M280 72H306"/>
+  <path class="line" d="M436 72H462"/>
+  <path class="line" d="M592 72H618"/>
+  <path class="line" d="M703 100V160H223V190"/>
+
+  <rect class="box" x="24" y="190" width="100" height="56" rx="28"/>
+  <text class="text" x="74" y="222">Question</text>
+
+  <rect class="key" x="146" y="190" width="154" height="56" rx="8"/>
+  <text class="text" x="223" y="214">Retrieve 3 ways</text>
+  <text class="sub" x="223" y="234">BM25 · vector · RRF</text>
+
+  <rect class="box" x="336" y="190" width="120" height="56" rx="8"/>
+  <text class="text" x="396" y="214">Distil</text>
+  <text class="sub" x="396" y="234">best 6 sentences</text>
+
+  <rect class="box" x="492" y="190" width="120" height="56" rx="8"/>
+  <text class="text" x="552" y="214">Flan-T5</text>
+  <text class="sub" x="552" y="234">local, on CPU</text>
+
+  <rect x="668" y="190" width="308" height="56" rx="28" fill="#0f766e"/>
+  <text class="white" x="822" y="214">Answer + 3-way comparison</text>
+  <text class="whitesub" x="822" y="234">passages, charts, metrics</text>
+
+  <path class="line" d="M124 218H146"/>
+  <path class="line" d="M300 218H336"/>
+  <path class="line" d="M456 218H492"/>
+  <path class="line" d="M612 218H668"/>
+
+  <rect class="box" x="336" y="266" width="276" height="48" rx="8"/>
+  <text class="text" x="474" y="288">Score all three methods</text>
+  <text class="sub" x="474" y="306">relevance · diversity</text>
+  <path class="line" d="M223 246V290H336"/>
+  <path class="line" d="M612 290H822V246"/>
+</svg>

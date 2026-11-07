@@ -1,5 +1,6 @@
 from __future__ import annotations
 import re
+import threading
 import numpy as np
 from transformers import pipeline
 
@@ -10,14 +11,16 @@ MODEL_OPTIONS = {
 }
 DEFAULT_MODEL = "google/flan-t5-large"
 _pipes: dict = {}
+_load_lock = threading.Lock()
 
 FAIL_PHRASES = ["do not contain a direct answer","not contain enough information","cannot answer","no direct answer","not directly answer","does not provide","not provided","not mentioned"]
 
 
 def get_generator(model_id: str = DEFAULT_MODEL):
     if model_id not in MODEL_OPTIONS: model_id = DEFAULT_MODEL
-    if model_id not in _pipes:
-        _pipes[model_id] = pipeline("text2text-generation", model=model_id, max_new_tokens=MODEL_OPTIONS[model_id]["max_new"])
+    with _load_lock:                      # two requests must not load the same model twice
+        if model_id not in _pipes:
+            _pipes[model_id] = pipeline("text2text-generation", model=model_id, max_new_tokens=MODEL_OPTIONS[model_id]["max_new"])
     return _pipes[model_id], MODEL_OPTIONS[model_id]
 
 
