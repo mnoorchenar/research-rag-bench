@@ -7,7 +7,9 @@ ENV PORT=7860 \
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu
+# typing-extensions comes from PyPI first: the PyTorch index only has its source package, which cannot be built there.
+RUN pip install --no-cache-dir typing-extensions \
+ && pip install --no-cache-dir torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Download the embedding model and the default answer model at build time,
